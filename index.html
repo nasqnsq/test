@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>شركة عمار العزات واولاده لتامين كافة مواد البناء</title>
+<title>نظام الفواتير - شغل الحديد (GitHub API)</title>
 <style>
     body { font-family: Arial, sans-serif; background: #f8f9fa; margin: 10px; direction: rtl; }
     h2 { text-align: center; color: #333; font-size: 20px; }
@@ -24,7 +24,7 @@
 </style>
 </head>
 <body>
-<h2>شركة عمار العزات واولاده لتامين كافة مواد البناء</h2>
+<h2>نظام الفواتير - شغل الحديد</h2>
 
 <div class="search-container">
     <input type="text" id="search" placeholder="ابحث باسم الزبون أو رقم الفاتورة أو المقيم في" oninput="searchInvoice()" />
@@ -68,18 +68,50 @@
 </div>
 
 <script>
-let invoices = JSON.parse(localStorage.getItem("invoices")) || [];
+const GITHUB_USER = "nasqnsq"; 
+const REPO = "test"; // اسم المستودع
+const FILE_PATH = "invoices.json";
+const TOKEN = "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"; 
+
+let invoices = [];
+let fileSha = "";
 let editIndex = null;
 
-function setTodayDate() {
-  const dateInput = document.getElementById("date");
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = String(today.getMonth() + 1).padStart(2, '0');
-  const dd = String(today.getDate()).padStart(2, '0');
-  dateInput.value = `${yyyy}-${mm}-${dd}`;
+// ✅ جلب الفواتير من GitHub
+async function fetchInvoices() {
+    const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${FILE_PATH}`, {
+        headers: { Authorization: `token ${TOKEN}` }
+    });
+    if (res.status === 200) {
+        const data = await res.json();
+        fileSha = data.sha;
+        invoices = JSON.parse(atob(data.content));
+    } else {
+        invoices = []; // إذا الملف ما كان موجود
+    }
+    renderTable();
 }
 
+// ✅ حفظ الفواتير على GitHub
+async function saveInvoices() {
+    const content = btoa(JSON.stringify(invoices, null, 2));
+    const res = await fetch(`https://api.github.com/repos/${GITHUB_USER}/${REPO}/contents/${FILE_PATH}`, {
+        method: "PUT",
+        headers: {
+            Authorization: `token ${TOKEN}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            message: "تحديث الفواتير",
+            content: content,
+            sha: fileSha || undefined
+        })
+    });
+    const data = await res.json();
+    fileSha = data.content.sha; 
+}
+
+// ✅ بقية الدوال (مثل السابق مع تعديل التخزين)
 function renderTable(filtered = invoices) {
     const tbody = document.querySelector("#invoiceTable tbody");
     tbody.innerHTML = "";
@@ -96,7 +128,7 @@ function renderTable(filtered = invoices) {
             <td>${inv.remaining}</td>
             <td>${inv.note}</td>
             <td>
-                <button class="invoice-btn" onclick="showInvoice(${index})">عرض الفاتورة</button>
+                <button class="invoice-btn" onclick="showInvoice(${index})">عرض</button>
                 <button class="edit-btn" onclick="editInvoice(${index})">تعديل</button>
                 <button class="delete-btn" onclick="deleteInvoice(${index})">حذف</button>
             </td>
@@ -105,7 +137,7 @@ function renderTable(filtered = invoices) {
     });
 }
 
-function addInvoice() {
+async function addInvoice() {
     const date = document.getElementById("date").value;
     const area = document.getElementById("area").value.trim();
     const name = document.getElementById("name").value.trim();
@@ -125,7 +157,7 @@ function addInvoice() {
         } else {
             invoices.push({ date, area, name, invoice, weight, type, total, paid, remaining, note });
         }
-        localStorage.setItem("invoices", JSON.stringify(invoices));
+        await saveInvoices();
         renderTable();
         clearForm();
     } else {
@@ -133,15 +165,10 @@ function addInvoice() {
     }
 }
 
-function clearForm() {
-    document.querySelectorAll(".form-container input").forEach(i => i.value = "");
-    setTodayDate();
-}
-
 function editInvoice(index) {
     const inv = invoices[index];
     document.getElementById("date").value = inv.date;
-    document.getElementById("area").value = inv.area || '';
+    document.getElementById("area").value = inv.area;
     document.getElementById("name").value = inv.name;
     document.getElementById("invoice").value = inv.invoice;
     document.getElementById("weight").value = inv.weight;
@@ -154,22 +181,10 @@ function editInvoice(index) {
     document.getElementById("addBtn").innerText = "حفظ التعديل";
 }
 
-function deleteInvoice(index) {
+async function deleteInvoice(index) {
     invoices.splice(index, 1);
-    localStorage.setItem("invoices", JSON.stringify(invoices));
+    await saveInvoices();
     renderTable();
-}
-
-function exportToExcel() {
-    let csv = "بالتاريخ,المقيم في,اسم الزبون,رقم الفاتورة,الوزن (كغ),النوع,المبلغ الإجمالي,المبلغ المدفوع,المبلغ المتبقي,ملاحظات\n";
-    invoices.forEach(inv => {
-        csv += `${inv.date || ''},${inv.area || ''},${inv.name},${inv.invoice},${inv.weight},${inv.type || ''},${inv.total},${inv.paid},${inv.remaining},${inv.note}\n`;
-    });
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "فواتير_حديد.csv";
-    link.click();
 }
 
 function calcRemaining() {
@@ -188,64 +203,22 @@ function searchInvoice() {
     renderTable(filtered);
 }
 
-function printTable() {
-    const table = document.getElementById("invoiceTable").outerHTML;
-    const printWindow = window.open('', '', 'height=600,width=900');
-    printWindow.document.write('<html lang="ar" dir="rtl"><head><title>طباعة الفواتير</title>');
-    printWindow.document.write('<style>body { font-family: Arial, sans-serif; direction: rtl; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #333; padding: 8px; text-align: center; } th { background-color: #4CAF50; color: white; }</style>');
-    printWindow.document.write('</head><body>');
-    printWindow.document.write('<h2>نظام الفواتير - شغل الحديد</h2>');
-    printWindow.document.write(table);
-    printWindow.document.write('</body></html>');
-    printWindow.document.close();
-    printWindow.focus();
-    printWindow.print();
-    printWindow.close();
-}
-
-function showInvoice(index) {
-    const inv = invoices[index];
-    const invoiceHtml = `
-        <html lang="ar" dir="rtl">
-        <head>
-            <meta charset="UTF-8" />
-            <title>فاتورة رقم ${inv.invoice}</title>
-            <style>
-                body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; }
-                h2 { text-align: center; }
-                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-                th, td { border: 1px solid #333; padding: 10px; text-align: right; }
-                th { background-color: #4CAF50; color: white; }
-            </style>
-        </head>
-        <body>
-            <h2>فاتورة رقم ${inv.invoice}</h2>
-            <table>
-                <tr><th>التاريخ</th><td>${inv.date}</td></tr>
-                <tr><th>اسم الزبون</th><td>${inv.name}</td></tr>
-                <tr><th>المقيم في</th><td>${inv.area || ''}</td></tr>
-                <tr><th>رقم الفاتورة</th><td>${inv.invoice}</td></tr>
-                <tr><th>الوزن (كغ)</th><td>${inv.weight}</td></tr>
-                <tr><th>النوع</th><td>${inv.type || ''}</td></tr>
-                <tr><th>المبلغ الإجمالي</th><td>${inv.total}</td></tr>
-                <tr><th>المبلغ المدفوع</th><td>${inv.paid}</td></tr>
-                <tr><th>المبلغ المتبقي</th><td>${inv.remaining}</td></tr>
-                <tr><th>ملاحظات</th><td>${inv.note}</td></tr>
-            </table>
-            <div style="text-align:center; margin-top:30px;">
-                <button onclick="window.print()">طباعة الفاتورة</button>
-            </div>
-        </body>
-        </html>
-    `;
-    const printWindow = window.open('', '_blank', 'width=600,height=700');
-    printWindow.document.write(invoiceHtml);
-    printWindow.document.close();
+function exportToExcel() {
+    let csv = "بالتاريخ,المقيم في,اسم الزبون,رقم الفاتورة,الوزن,النوع,الإجمالي,المدفوع,المتبقي,ملاحظات\n";
+    invoices.forEach(inv => {
+        csv += `${inv.date},${inv.area},${inv.name},${inv.invoice},${inv.weight},${inv.type},${inv.total},${inv.paid},${inv.remaining},${inv.note}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "فواتير_حديد.csv";
+    link.click();
 }
 
 window.onload = () => {
-    setTodayDate();
-    renderTable();
+    fetchInvoices();
+    const today = new Date();
+    document.getElementById("date").value = today.toISOString().split("T")[0];
 };
 </script>
 </body>
