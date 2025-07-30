@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>شركة عمار العزات واولاده لتامين كافة مواد البناء</title>
+<style>
+    body { font-family: Arial, sans-serif; background: #f8f9fa; margin: 10px; direction: rtl; }
+    h2 { text-align: center; color: #333; font-size: 20px; }
+    table { width: 100%; margin: 10px 0; border-collapse: collapse; font-size: 14px; }
+    th, td { border: 1px solid #333; padding: 6px; text-align: center; }
+    th { background-color: #4CAF50; color: white; }
+    tr:nth-child(even) { background-color: #f2f2f2; }
+    .form-container, .search-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-bottom: 10px; }
+    input, button { padding: 8px; font-size: 14px; }
+    input { flex: 1 1 20%; min-width: 120px; }
+    .search-container input { flex: 1 1 90%; min-width: 200px; }
+    button { margin: 3px; cursor: pointer; background-color: #4CAF50; color: white; border: none; border-radius: 4px; }
+    button:hover { background-color: #45a049; }
+    .delete-btn { background-color: red !important; }
+    .edit-btn { background-color: orange !important; }
+    .invoice-btn { background-color: #2196F3 !important; }
+    .table-container { overflow-x: auto; }
+</style>
+</head>
+<body>
+<h2>شركة عمار العزات واولاده لتامين كافة مواد البناء</h2>
+
+<div class="search-container">
+    <input type="text" id="search" placeholder="ابحث باسم الزبون أو رقم الفاتورة أو المقيم في" oninput="searchInvoice()" />
+</div>
+
+<div class="form-container">
+    <input type="date" id="date" />
+    <input type="text" id="area" placeholder="المقيم في" />
+    <input type="text" id="name" placeholder="اسم الزبون" />
+    <input type="text" id="invoice" placeholder="رقم الفاتورة" />
+    <input type="number" id="weight" placeholder="الوزن (كغ)" />
+    <input type="text" id="type" placeholder="النوع" />
+    <input type="number" id="total" placeholder="المبلغ الإجمالي" />
+    <input type="number" id="paid" placeholder="المبلغ المدفوع" oninput="calcRemaining()" />
+    <input type="number" id="remaining" placeholder="المبلغ المتبقي" readonly />
+    <input type="text" id="note" placeholder="ملاحظات" />
+    <button id="addBtn" onclick="addInvoice()">إضافة</button>
+    <button onclick="exportToExcel()">تصدير إلى Excel</button>
+    <button onclick="printTable()">طباعة PDF</button>
+</div>
+
+<div class="table-container">
+    <table id="invoiceTable" aria-label="جدول الفواتير">
+        <thead>
+            <tr>
+                <th>بالتاريخ</th>
+                <th>المقيم في</th>
+                <th>اسم الزبون</th>
+                <th>رقم الفاتورة</th>
+                <th>الوزن (كغ)</th>
+                <th>النوع</th>
+                <th>المبلغ الإجمالي</th>
+                <th>المبلغ المدفوع</th>
+                <th>المبلغ المتبقي</th>
+                <th>ملاحظات</th>
+                <th>إجراء</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script>
+let invoices = JSON.parse(localStorage.getItem("invoices")) || [];
+let editIndex = null;
+
+function setTodayDate() {
+  const dateInput = document.getElementById("date");
+  const today = new Date();
+  const yyyy = today.getFullYear();
+  const mm = String(today.getMonth() + 1).padStart(2, '0');
+  const dd = String(today.getDate()).padStart(2, '0');
+  dateInput.value = `${yyyy}-${mm}-${dd}`;
+}
+
+function renderTable(filtered = invoices) {
+    const tbody = document.querySelector("#invoiceTable tbody");
+    tbody.innerHTML = "";
+    filtered.forEach((inv, index) => {
+        const row = `<tr>
+            <td>${inv.date || ''}</td>
+            <td>${inv.area || ''}</td>
+            <td>${inv.name}</td>
+            <td>${inv.invoice}</td>
+            <td>${inv.weight}</td>
+            <td>${inv.type || ''}</td>
+            <td>${inv.total}</td>
+            <td>${inv.paid}</td>
+            <td>${inv.remaining}</td>
+            <td>${inv.note}</td>
+            <td>
+                <button class="invoice-btn" onclick="showInvoice(${index})">عرض الفاتورة</button>
+                <button class="edit-btn" onclick="editInvoice(${index})">تعديل</button>
+                <button class="delete-btn" onclick="deleteInvoice(${index})">حذف</button>
+            </td>
+        </tr>`;
+        tbody.innerHTML += row;
+    });
+}
+
+function addInvoice() {
+    const date = document.getElementById("date").value;
+    const area = document.getElementById("area").value.trim();
+    const name = document.getElementById("name").value.trim();
+    const invoice = document.getElementById("invoice").value.trim();
+    const weight = document.getElementById("weight").value.trim();
+    const type = document.getElementById("type").value.trim();
+    const total = document.getElementById("total").value.trim();
+    const paid = document.getElementById("paid").value.trim();
+    const remaining = document.getElementById("remaining").value.trim();
+    const note = document.getElementById("note").value.trim();
+
+    if (date && name && invoice && total) {
+        if (editIndex !== null) {
+            invoices[editIndex] = { date, area, name, invoice, weight, type, total, paid, remaining, note };
+            editIndex = null;
+            document.getElementById("addBtn").innerText = "إضافة";
+        } else {
+            invoices.push({ date, area, name, invoice, weight, type, total, paid, remaining, note });
+        }
+        localStorage.setItem("invoices", JSON.stringify(invoices));
+        renderTable();
+        clearForm();
+    } else {
+        alert("الرجاء إدخال البيانات المطلوبة!");
+    }
+}
+
+function clearForm() {
+    document.querySelectorAll(".form-container input").forEach(i => i.value = "");
+    setTodayDate();
+}
+
+function editInvoice(index) {
+    const inv = invoices[index];
+    document.getElementById("date").value = inv.date;
+    document.getElementById("area").value = inv.area || '';
+    document.getElementById("name").value = inv.name;
+    document.getElementById("invoice").value = inv.invoice;
+    document.getElementById("weight").value = inv.weight;
+    document.getElementById("type").value = inv.type || '';
+    document.getElementById("total").value = inv.total;
+    document.getElementById("paid").value = inv.paid;
+    document.getElementById("remaining").value = inv.remaining;
+    document.getElementById("note").value = inv.note;
+    editIndex = index;
+    document.getElementById("addBtn").innerText = "حفظ التعديل";
+}
+
+function deleteInvoice(index) {
+    invoices.splice(index, 1);
+    localStorage.setItem("invoices", JSON.stringify(invoices));
+    renderTable();
+}
+
+function exportToExcel() {
+    let csv = "بالتاريخ,المقيم في,اسم الزبون,رقم الفاتورة,الوزن (كغ),النوع,المبلغ الإجمالي,المبلغ المدفوع,المبلغ المتبقي,ملاحظات\n";
+    invoices.forEach(inv => {
+        csv += `${inv.date || ''},${inv.area || ''},${inv.name},${inv.invoice},${inv.weight},${inv.type || ''},${inv.total},${inv.paid},${inv.remaining},${inv.note}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = "فواتير_حديد.csv";
+    link.click();
+}
+
+function calcRemaining() {
+    const total = parseFloat(document.getElementById("total").value) || 0;
+    const paid = parseFloat(document.getElementById("paid").value) || 0;
+    document.getElementById("remaining").value = total - paid;
+}
+
+function searchInvoice() {
+    const term = document.getElementById("search").value.toLowerCase();
+    const filtered = invoices.filter(inv =>
+        (inv.name && inv.name.toLowerCase().includes(term)) ||
+        (inv.invoice && inv.invoice.toLowerCase().includes(term)) ||
+        (inv.area && inv.area.toLowerCase().includes(term))
+    );
+    renderTable(filtered);
+}
+
+function printTable() {
+    const table = document.getElementById("invoiceTable").outerHTML;
+    const printWindow = window.open('', '', 'height=600,width=900');
+    printWindow.document.write('<html lang="ar" dir="rtl"><head><title>طباعة الفواتير</title>');
+    printWindow.document.write('<style>body { font-family: Arial, sans-serif; direction: rtl; } table { width: 100%; border-collapse: collapse; } th, td { border: 1px solid #333; padding: 8px; text-align: center; } th { background-color: #4CAF50; color: white; }</style>');
+    printWindow.document.write('</head><body>');
+    printWindow.document.write('<h2>نظام الفواتير - شغل الحديد</h2>');
+    printWindow.document.write(table);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+}
+
+function showInvoice(index) {
+    const inv = invoices[index];
+    const invoiceHtml = `
+        <html lang="ar" dir="rtl">
+        <head>
+            <meta charset="UTF-8" />
+            <title>فاتورة رقم ${inv.invoice}</title>
+            <style>
+                body { font-family: Arial, sans-serif; direction: rtl; padding: 20px; }
+                h2 { text-align: center; }
+                table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                th, td { border: 1px solid #333; padding: 10px; text-align: right; }
+                th { background-color: #4CAF50; color: white; }
+            </style>
+        </head>
+        <body>
+            <h2>فاتورة رقم ${inv.invoice}</h2>
+            <table>
+                <tr><th>التاريخ</th><td>${inv.date}</td></tr>
+                <tr><th>اسم الزبون</th><td>${inv.name}</td></tr>
+                <tr><th>المقيم في</th><td>${inv.area || ''}</td></tr>
+                <tr><th>رقم الفاتورة</th><td>${inv.invoice}</td></tr>
+                <tr><th>الوزن (كغ)</th><td>${inv.weight}</td></tr>
+                <tr><th>النوع</th><td>${inv.type || ''}</td></tr>
+                <tr><th>المبلغ الإجمالي</th><td>${inv.total}</td></tr>
+                <tr><th>المبلغ المدفوع</th><td>${inv.paid}</td></tr>
+                <tr><th>المبلغ المتبقي</th><td>${inv.remaining}</td></tr>
+                <tr><th>ملاحظات</th><td>${inv.note}</td></tr>
+            </table>
+            <div style="text-align:center; margin-top:30px;">
+                <button onclick="window.print()">طباعة الفاتورة</button>
+            </div>
+        </body>
+        </html>
+    `;
+    const printWindow = window.open('', '_blank', 'width=600,height=700');
+    printWindow.document.write(invoiceHtml);
+    printWindow.document.close();
+}
+
+window.onload = () => {
+    setTodayDate();
+    renderTable();
+};
+</script>
+</body>
+</html>
