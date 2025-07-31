@@ -12,7 +12,7 @@
         margin: 0;
         padding: 20px;
         direction: rtl;
-        min-width: 1200px; /* 🔥 إجبار العرض على الكمبيوتر */
+        min-width: 1200px;
     }
     h1.page-title {
         text-align: center;
@@ -23,7 +23,7 @@
     }
     .form-container {
         display: grid;
-        grid-template-columns: repeat(7, 1fr); /* 🔥 7 خانات بعرض ثابت */
+        grid-template-columns: repeat(10, 1fr);
         gap: 10px;
         margin-bottom: 15px;
     }
@@ -79,17 +79,6 @@
     }
     th { background-color: #4CAF50; color: white; }
     tr:nth-child(even) { background-color: #f2f2f2; }
-
-    /* 🔥 أوقف تنسيق الهاتف */
-    @media (max-width: 768px) {
-        body {
-            min-width: 1200px;
-            overflow-x: scroll;
-        }
-        .form-container {
-            grid-template-columns: repeat(7, 1fr);
-        }
-    }
 </style>
 </head>
 <body>
@@ -97,7 +86,7 @@
 <h1 class="page-title">شركة عمار العزات وأولاده لتأمين كافة مواد البناء</h1>
 
 <div class="search-container">
-    <input type="text" id="search" placeholder="ابحث باسم الزبون" oninput="searchInvoice()" />
+    <input type="text" id="search" placeholder="ابحث بالمطلوب من السيد" oninput="searchInvoice()" />
 </div>
 
 <div class="form-container">
@@ -106,8 +95,8 @@
         <input type="date" id="date" />
     </div>
     <div class="form-group">
-        <label>اسم الزبون</label>
-        <input type="text" id="name" placeholder="أدخل اسم الزبون" />
+        <label>المطلوب من السيد</label>
+        <input type="text" id="name" placeholder="أدخل اسم السيد" />
     </div>
     <div class="form-group">
         <label>المقيم في</label>
@@ -115,7 +104,7 @@
     </div>
     <div class="form-group">
         <label>الوزن (كغ)</label>
-        <input type="number" id="weight" placeholder="أدخل الوزن" />
+        <input type="number" id="weight" placeholder="أدخل الوزن" oninput="calculateTotal()" />
     </div>
     <div class="form-group">
         <label>النوع</label>
@@ -123,7 +112,19 @@
     </div>
     <div class="form-group">
         <label>السعر</label>
-        <input type="number" id="price" placeholder="أدخل السعر" />
+        <input type="number" id="price" placeholder="أدخل السعر" oninput="calculateTotal()" />
+    </div>
+    <div class="form-group">
+        <label>المبلغ الإجمالي</label>
+        <input type="number" id="total" readonly />
+    </div>
+    <div class="form-group">
+        <label>المبلغ المدفوع</label>
+        <input type="number" id="paid" placeholder="أدخل المدفوع" oninput="updateRemaining()" />
+    </div>
+    <div class="form-group">
+        <label>المتبقي</label>
+        <input type="number" id="remaining" readonly />
     </div>
     <div class="form-group">
         <label>ملاحظات</label>
@@ -138,11 +139,14 @@
         <thead>
             <tr>
                 <th>بالتاريخ</th>
-                <th>اسم الزبون</th>
+                <th>المطلوب من السيد</th>
                 <th>المقيم في</th>
                 <th>الوزن (كغ)</th>
                 <th>النوع</th>
                 <th>السعر</th>
+                <th>الإجمالي</th>
+                <th>المدفوع</th>
+                <th>المتبقي</th>
                 <th>ملاحظات</th>
                 <th>إجراء</th>
             </tr>
@@ -159,6 +163,20 @@ function setTodayDate() {
     document.getElementById("date").value = new Date().toISOString().split("T")[0];
 }
 
+function calculateTotal() {
+    const weight = parseFloat(document.getElementById("weight").value) || 0;
+    const price = parseFloat(document.getElementById("price").value) || 0;
+    const total = weight * price;
+    document.getElementById("total").value = total;
+    updateRemaining();
+}
+
+function updateRemaining() {
+    const total = parseFloat(document.getElementById("total").value) || 0;
+    const paid = parseFloat(document.getElementById("paid").value) || 0;
+    document.getElementById("remaining").value = total - paid;
+}
+
 function renderTable(filtered = invoices) {
     const tbody = document.querySelector("#invoiceTable tbody");
     tbody.innerHTML = "";
@@ -171,6 +189,9 @@ function renderTable(filtered = invoices) {
                 <td>${inv.weight}</td>
                 <td>${inv.type}</td>
                 <td>${inv.price}</td>
+                <td>${inv.total}</td>
+                <td>${inv.paid}</td>
+                <td>${inv.remaining}</td>
                 <td>${inv.note}</td>
                 <td>
                     <button class="invoice-btn" onclick="showInvoice(${index})">عرض</button>
@@ -189,6 +210,9 @@ function addInvoice() {
         weight: document.getElementById("weight").value,
         type: document.getElementById("type").value,
         price: document.getElementById("price").value,
+        total: document.getElementById("total").value,
+        paid: document.getElementById("paid").value,
+        remaining: document.getElementById("remaining").value,
         note: document.getElementById("note").value
     };
 
@@ -219,6 +243,9 @@ function editInvoice(index) {
     document.getElementById("weight").value = inv.weight;
     document.getElementById("type").value = inv.type;
     document.getElementById("price").value = inv.price;
+    document.getElementById("total").value = inv.total;
+    document.getElementById("paid").value = inv.paid;
+    document.getElementById("remaining").value = inv.remaining;
     document.getElementById("note").value = inv.note;
     editIndex = index;
     document.getElementById("addBtn").innerText = "حفظ التعديل";
@@ -239,9 +266,9 @@ function searchInvoice() {
 }
 
 function exportToExcel() {
-    let csv = "بالتاريخ,اسم الزبون,المقيم في,الوزن,النوع,السعر,ملاحظات\n";
+    let csv = "بالتاريخ,المطلوب من السيد,المقيم في,الوزن,النوع,السعر,الإجمالي,المدفوع,المتبقي,ملاحظات\n";
     invoices.forEach(inv => {
-        csv += `${inv.date},${inv.name},${inv.region},${inv.weight},${inv.type},${inv.price},${inv.note}\n`;
+        csv += `${inv.date},${inv.name},${inv.region},${inv.weight},${inv.type},${inv.price},${inv.total},${inv.paid},${inv.remaining},${inv.note}\n`;
     });
     const BOM = '\uFEFF';
     const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
@@ -272,15 +299,18 @@ function showInvoice(index) {
         </head>
         <body>
         <h1>شركة عمار العزات وأولاده لتأمين كافة مواد البناء</h1>
-        <h2 style="text-align:center;">فاتورة زبون</h2>
+        <h2 style="text-align:center;">فاتورة السيد</h2>
         <button class="print-button" onclick="window.print()">طباعة</button>
         <table>
             <tr><th>بالتاريخ</th><td>${inv.date}</td></tr>
-            <tr><th>اسم الزبون</th><td>${inv.name}</td></tr>
+            <tr><th>المطلوب من السيد</th><td>${inv.name}</td></tr>
             <tr><th>المقيم في</th><td>${inv.region}</td></tr>
             <tr><th>الوزن (كغ)</th><td>${inv.weight}</td></tr>
             <tr><th>النوع</th><td>${inv.type}</td></tr>
             <tr><th>السعر</th><td>${inv.price}</td></tr>
+            <tr><th>المبلغ الإجمالي</th><td>${inv.total}</td></tr>
+            <tr><th>المبلغ المدفوع</th><td>${inv.paid}</td></tr>
+            <tr><th>المتبقي</th><td>${inv.remaining}</td></tr>
             <tr><th>ملاحظات</th><td>${inv.note}</td></tr>
         </table>
         <div class="signature-section">
