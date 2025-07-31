@@ -6,30 +6,90 @@
 <title>شركة عمار العزات وأولاده</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet" />
 <style>
-    body { font-family: 'Cairo', sans-serif; background: #f8f9fa; margin: 10px; direction: rtl; }
+    body {
+        font-family: 'Cairo', sans-serif;
+        background: #f8f9fa;
+        margin: 0;
+        padding: 20px;
+        direction: rtl;
+        min-width: 1200px; /* 🔥 إجبار العرض على الكمبيوتر */
+    }
     h1.page-title {
         text-align: center;
         color: #333;
-        font-size: 26px;
+        font-size: 28px;
         margin-bottom: 20px;
         font-weight: 700;
     }
-    table { width: 100%; margin: 10px 0; border-collapse: collapse; font-size: 14px; }
-    th, td { border: 1px solid #333; padding: 6px; text-align: center; }
-    th { background-color: #4CAF50; color: white; }
-    tr:nth-child(even) { background-color: #f2f2f2; }
-    .form-container, .search-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 5px; margin-bottom: 10px; }
-    input, button { padding: 8px; font-size: 14px; font-family: 'Cairo', sans-serif; }
-    input { flex: 1 1 20%; min-width: 120px; }
-    .search-container input { flex: 1 1 90%; min-width: 200px; }
-    button { margin: 3px; cursor: pointer; background-color: #4CAF50; color: white; border: none; border-radius: 4px; }
+    .form-container {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr); /* 🔥 7 خانات بعرض ثابت */
+        gap: 10px;
+        margin-bottom: 15px;
+    }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+    label {
+        font-size: 13px;
+        margin-bottom: 3px;
+        color: #444;
+    }
+    input, button {
+        padding: 10px;
+        font-size: 14px;
+        font-family: 'Cairo', sans-serif;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+        width: 100%;
+    }
+    button {
+        cursor: pointer;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+    }
     button:hover { background-color: #45a049; }
     .delete-btn { background-color: red !important; }
     .edit-btn { background-color: orange !important; }
     .invoice-btn { background-color: #2196F3 !important; }
+    .search-container {
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: center;
+    }
+    .search-container input {
+        width: 50%;
+        min-width: 250px;
+        padding: 10px;
+    }
     .table-container { overflow-x: auto; }
-    .signature-section { margin-top: 50px; text-align: center; }
-    .signature-box { border-top: 1px solid #333; width: 45%; margin: 0 auto; padding-top: 10px; font-weight: bold; font-size: 16px; }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+    th, td {
+        border: 1px solid #333;
+        padding: 8px;
+        text-align: center;
+    }
+    th { background-color: #4CAF50; color: white; }
+    tr:nth-child(even) { background-color: #f2f2f2; }
+
+    /* 🔥 أوقف تنسيق الهاتف */
+    @media (max-width: 768px) {
+        body {
+            min-width: 1200px;
+            overflow-x: scroll;
+        }
+        .form-container {
+            grid-template-columns: repeat(7, 1fr);
+        }
+    }
 </style>
 </head>
 <body>
@@ -37,20 +97,38 @@
 <h1 class="page-title">شركة عمار العزات وأولاده لتأمين كافة مواد البناء</h1>
 
 <div class="search-container">
-    <input type="text" id="search" placeholder="ابحث باسم الزبون أو رقم الفاتورة أو المقيم في" oninput="searchInvoice()" />
+    <input type="text" id="search" placeholder="ابحث باسم الزبون" oninput="searchInvoice()" />
 </div>
 
 <div class="form-container">
-    <input type="date" id="date" />
-    <input type="text" id="name" placeholder="مطلوب من السيد" />
-    <input type="text" id="area" placeholder="المقيم في" />
-    <input type="text" id="invoice" placeholder="رقم الفاتورة" />
-    <input type="number" id="weight" placeholder="الوزن (كغ)" />
-    <input type="text" id="type" placeholder="النوع" />
-    <input type="number" id="total" placeholder="المبلغ الإجمالي" />
-    <input type="number" id="paid" placeholder="المبلغ المدفوع" oninput="calcRemaining()" />
-    <input type="number" id="remaining" placeholder="المبلغ المتبقي" readonly />
-    <input type="text" id="note" placeholder="ملاحظات" />
+    <div class="form-group">
+        <label>بالتاريخ</label>
+        <input type="date" id="date" />
+    </div>
+    <div class="form-group">
+        <label>اسم الزبون</label>
+        <input type="text" id="name" placeholder="أدخل اسم الزبون" />
+    </div>
+    <div class="form-group">
+        <label>المقيم في</label>
+        <input type="text" id="region" placeholder="أدخل المنطقة" />
+    </div>
+    <div class="form-group">
+        <label>الوزن (كغ)</label>
+        <input type="number" id="weight" placeholder="أدخل الوزن" />
+    </div>
+    <div class="form-group">
+        <label>النوع</label>
+        <input type="text" id="type" placeholder="أدخل النوع" />
+    </div>
+    <div class="form-group">
+        <label>السعر</label>
+        <input type="number" id="price" placeholder="أدخل السعر" />
+    </div>
+    <div class="form-group">
+        <label>ملاحظات</label>
+        <input type="text" id="note" placeholder="أدخل الملاحظات" />
+    </div>
     <button id="addBtn" onclick="addInvoice()">إضافة</button>
     <button onclick="exportToExcel()">تصدير إلى Excel</button>
 </div>
@@ -60,14 +138,11 @@
         <thead>
             <tr>
                 <th>بالتاريخ</th>
-                <th>مطلوب من السيد</th>
+                <th>اسم الزبون</th>
                 <th>المقيم في</th>
-                <th>رقم الفاتورة</th>
                 <th>الوزن (كغ)</th>
                 <th>النوع</th>
-                <th>الإجمالي</th>
-                <th>المدفوع</th>
-                <th>المتبقي</th>
+                <th>السعر</th>
                 <th>ملاحظات</th>
                 <th>إجراء</th>
             </tr>
@@ -92,16 +167,13 @@ function renderTable(filtered = invoices) {
             <tr>
                 <td>${inv.date}</td>
                 <td>${inv.name}</td>
-                <td>${inv.area}</td>
-                <td>${inv.invoice}</td>
+                <td>${inv.region}</td>
                 <td>${inv.weight}</td>
                 <td>${inv.type}</td>
-                <td>${inv.total}</td>
-                <td>${inv.paid}</td>
-                <td>${inv.remaining}</td>
+                <td>${inv.price}</td>
                 <td>${inv.note}</td>
                 <td>
-                    <button class="invoice-btn" onclick="showInvoice(${index})">طباعة</button>
+                    <button class="invoice-btn" onclick="showInvoice(${index})">عرض</button>
                     <button class="edit-btn" onclick="editInvoice(${index})">تعديل</button>
                     <button class="delete-btn" onclick="deleteInvoice(${index})">حذف</button>
                 </td>
@@ -113,17 +185,14 @@ function addInvoice() {
     const inv = {
         date: document.getElementById("date").value,
         name: document.getElementById("name").value,
-        area: document.getElementById("area").value,
-        invoice: document.getElementById("invoice").value,
+        region: document.getElementById("region").value,
         weight: document.getElementById("weight").value,
         type: document.getElementById("type").value,
-        total: document.getElementById("total").value,
-        paid: document.getElementById("paid").value,
-        remaining: document.getElementById("remaining").value,
+        price: document.getElementById("price").value,
         note: document.getElementById("note").value
     };
 
-    if (!inv.date || !inv.name || !inv.invoice || !inv.total) return alert("الرجاء إدخال البيانات الأساسية!");
+    if (!inv.date || !inv.name || !inv.weight || !inv.price) return alert("الرجاء إدخال جميع الحقول!");
 
     if (editIndex !== null) {
         invoices[editIndex] = inv;
@@ -146,13 +215,10 @@ function editInvoice(index) {
     const inv = invoices[index];
     document.getElementById("date").value = inv.date;
     document.getElementById("name").value = inv.name;
-    document.getElementById("area").value = inv.area;
-    document.getElementById("invoice").value = inv.invoice;
+    document.getElementById("region").value = inv.region;
     document.getElementById("weight").value = inv.weight;
     document.getElementById("type").value = inv.type;
-    document.getElementById("total").value = inv.total;
-    document.getElementById("paid").value = inv.paid;
-    document.getElementById("remaining").value = inv.remaining;
+    document.getElementById("price").value = inv.price;
     document.getElementById("note").value = inv.note;
     editIndex = index;
     document.getElementById("addBtn").innerText = "حفظ التعديل";
@@ -164,27 +230,20 @@ function deleteInvoice(index) {
     renderTable();
 }
 
-function calcRemaining() {
-    const total = parseFloat(document.getElementById("total").value) || 0;
-    const paid = parseFloat(document.getElementById("paid").value) || 0;
-    document.getElementById("remaining").value = total - paid;
-}
-
 function searchInvoice() {
     const term = document.getElementById("search").value.toLowerCase();
     renderTable(invoices.filter(inv =>
         inv.name.toLowerCase().includes(term) ||
-        inv.invoice.toLowerCase().includes(term) ||
-        inv.area.toLowerCase().includes(term)
+        inv.region.toLowerCase().includes(term)
     ));
 }
 
 function exportToExcel() {
-    let csv = "بالتاريخ,مطلوب من السيد,المقيم في,رقم الفاتورة,الوزن,النوع,الإجمالي,المدفوع,المتبقي,ملاحظات\n";
+    let csv = "بالتاريخ,اسم الزبون,المقيم في,الوزن,النوع,السعر,ملاحظات\n";
     invoices.forEach(inv => {
-        csv += `${inv.date},${inv.name},${inv.area},${inv.invoice},${inv.weight},${inv.type},${inv.total},${inv.paid},${inv.remaining},${inv.note}\n`;
+        csv += `${inv.date},${inv.name},${inv.region},${inv.weight},${inv.type},${inv.price},${inv.note}\n`;
     });
-    const BOM = '\uFEFF'; 
+    const BOM = '\uFEFF';
     const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
@@ -200,46 +259,28 @@ function showInvoice(index) {
         <head>
         <title>فاتورة</title>
         <style>
-            body { font-family: Cairo, sans-serif; direction: rtl; padding: 20px; }
-            h1 { text-align: center; margin: 0; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 16px; }
+            body { font-family: 'Cairo', sans-serif; direction: rtl; padding: 20px; }
+            h1 { text-align: center; margin-bottom: 10px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th, td { border: 1px solid #333; padding: 10px; text-align: right; }
             th { background: #f2f2f2; width: 35%; }
-            .signature-section { margin-top: 50px; text-align: center; }
+            .signature-section { margin-top: 40px; text-align: center; }
             .signature-box { border-top: 1px solid #333; width: 45%; margin: 0 auto; padding-top: 10px; font-weight: bold; font-size: 16px; }
-            .print-button {
-                background-color: #4CAF50;
-                color: white;
-                padding: 10px 15px;
-                border: none;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 16px;
-                margin-bottom: 20px;
-            }
-            .print-button:hover {
-                background-color: #45a049;
-            }
-            @media print {
-                .print-button { display: none; }
-                body { margin: 0; }
-            }
+            .print-button { background-color: #4CAF50; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; display: block; margin: 10px auto; }
+            @media print { .print-button { display: none; } }
         </style>
         </head>
         <body>
         <h1>شركة عمار العزات وأولاده لتأمين كافة مواد البناء</h1>
-        <h2 style="text-align:center;margin:20px 0;">فاتورة السيد ${inv.name}</h2>
+        <h2 style="text-align:center;">فاتورة زبون</h2>
         <button class="print-button" onclick="window.print()">طباعة</button>
         <table>
             <tr><th>بالتاريخ</th><td>${inv.date}</td></tr>
-            <tr><th>المقيم في</th><td>${inv.area}</td></tr>
-            <tr><th>مطلوب من السيد</th><td>${inv.name}</td></tr>
-            <tr><th>رقم الفاتورة</th><td>${inv.invoice}</td></tr>
+            <tr><th>اسم الزبون</th><td>${inv.name}</td></tr>
+            <tr><th>المقيم في</th><td>${inv.region}</td></tr>
             <tr><th>الوزن (كغ)</th><td>${inv.weight}</td></tr>
             <tr><th>النوع</th><td>${inv.type}</td></tr>
-            <tr><th>المبلغ الإجمالي</th><td>${inv.total}</td></tr>
-            <tr><th>المبلغ المدفوع</th><td>${inv.paid}</td></tr>
-            <tr><th>المبلغ المتبقي</th><td>${inv.remaining}</td></tr>
+            <tr><th>السعر</th><td>${inv.price}</td></tr>
             <tr><th>ملاحظات</th><td>${inv.note}</td></tr>
         </table>
         <div class="signature-section">
@@ -250,7 +291,6 @@ function showInvoice(index) {
     `);
     w.document.close();
 }
-
 window.onload = () => { setTodayDate(); renderTable(); };
 </script>
 </body>
