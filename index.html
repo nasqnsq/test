@@ -92,7 +92,7 @@
 <div class="form-container">
     <div class="form-group">
         <label>رقم الفاتورة</label>
-        <input type="text" id="invoiceNo" readonly />
+        <input type="text" id="invoiceNo" placeholder="أدخل رقم الفاتورة يدويًا" />
     </div>
     <div class="form-group">
         <label>بالتاريخ</label>
@@ -166,7 +166,6 @@ let editIndex = null;
 
 function setTodayDate() {
     document.getElementById("date").value = new Date().toISOString().split("T")[0];
-    document.getElementById("invoiceNo").value = invoices.length ? invoices[invoices.length - 1].invoiceNo + 1 : 1;
 }
 
 function calculateTotal() {
@@ -211,7 +210,7 @@ function renderTable(filtered = invoices) {
 
 function addInvoice() {
     const inv = {
-        invoiceNo: parseInt(document.getElementById("invoiceNo").value),
+        invoiceNo: document.getElementById("invoiceNo").value,
         date: document.getElementById("date").value,
         name: document.getElementById("name").value,
         region: document.getElementById("region").value,
@@ -224,7 +223,7 @@ function addInvoice() {
         note: document.getElementById("note").value
     };
 
-    if (!inv.date || !inv.name || !inv.weight || !inv.price) return alert("الرجاء إدخال جميع الحقول!");
+    if (!inv.invoiceNo || !inv.date || !inv.name || !inv.weight || !inv.price) return alert("الرجاء إدخال جميع الحقول!");
 
     if (editIndex !== null) {
         invoices[editIndex] = inv;
@@ -276,7 +275,7 @@ function searchInvoice() {
 }
 
 function exportToExcel() {
-    let csv = "رقم الفاتورة,بالتاريخ,المطلوب من السيد,المقيم في,الوزن,النوع,السعر,الإجمالي,المدفوع,المتبقي,ملاحظات\n";
+    let csv = "رقم الفاتورة,بالتاريخ,المطلوب من السيد,المقيم في,الوزن,النوع,s السعر,الإجمالي,المدفوع,المتبقي,ملاحظات\n";
     invoices.forEach(inv => {
         csv += `${inv.invoiceNo},${inv.date},${inv.name},${inv.region},${inv.weight},${inv.type},${inv.price},${inv.total},${inv.paid},${inv.remaining},${inv.note}\n`;
     });
@@ -309,7 +308,7 @@ function showInvoice(index) {
         </head>
         <body>
         <h1>شركة عمار العزات وأولاده لتأمين كافة مواد البناء</h1>
-        <h2 style="text-align:center;">فاتورة السيد رقم ${inv.invoiceNo}</h2>
+        <h2 style="text-align:center;">فاتورة السيد ${inv.name}</h2>
         <button class="print-button" onclick="window.print()">طباعة</button>
         <table>
             <tr><th>بالتاريخ</th><td>${inv.date}</td></tr>
