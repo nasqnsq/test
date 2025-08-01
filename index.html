@@ -6,136 +6,245 @@
 <title>شركة عمار العزات وأولاده</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600&display=swap" rel="stylesheet" />
 <style>
+/* General Styles */
+body {
+    font-family: 'Cairo', sans-serif;
+    background: #eef2f5;
+    margin: 0;
+    padding: 20px;
+    direction: rtl;
+    color: #333;
+    min-width: 1200px;
+}
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+}
+h1.page-title {
+    text-align: center;
+    color: #1e40af;
+    font-size: 32px;
+    margin-bottom: 30px;
+    font-weight: 700;
+    border-bottom: 3px solid #d1d5db;
+    padding-bottom: 10px;
+}
+
+/* Form Section */
+.form-section {
+    padding: 20px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    background: #f9fafb;
+}
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 columns layout */
+    gap: 15px;
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+.form-group.span-2 {
+    grid-column: span 2;
+}
+.form-group.span-4 {
+    grid-column: span 4;
+}
+label {
+    font-size: 14px;
+    margin-bottom: 6px;
+    color: #4b5563;
+    font-weight: 600;
+    text-align: right;
+}
+input[type="text"],
+input[type="date"],
+input[type="number"] {
+    padding: 12px;
+    font-size: 14px;
+    font-family: 'Cairo', sans-serif;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+input:focus {
+    border-color: #3b82f6;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+input[readonly] {
+    background-color: #e5e7eb;
+    cursor: not-allowed;
+}
+.button-container {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+.button-container button {
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'Cairo', sans-serif;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: white;
+    transition: background-color 0.2s ease;
+}
+#addBtn { background-color: #16a34a; }
+#addBtn:hover { background-color: #15803d; }
+.export-btn { background-color: #2563eb; }
+.export-btn:hover { background-color: #1e40af; }
+
+/* Search Section */
+.search-container {
+    margin: 25px 0;
+    text-align: center;
+}
+.search-container input {
+    width: 100%;
+    max-width: 600px;
+    padding: 12px 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 15px;
+}
+
+/* Table Section */
+.table-container {
+    overflow-x: auto;
+}
+table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #fff;
+}
+th, td {
+    border: none;
+    padding: 14px 10px;
+    text-align: center;
+}
+th {
+    background-color: #16a34a;
+    color: white;
+    font-weight: 600;
+    font-size: 15px;
+    white-space: nowrap;
+}
+tr:nth-child(even) { background-color: #f9fafb; }
+tr:hover { background-color: #f3f4f6; }
+td {
+    border-right: 1px solid #e5e7eb;
+}
+td:last-child {
+    border-right: none;
+}
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+.action-buttons button {
+    padding: 8px 12px;
+    font-size: 13px;
+    font-weight: 400;
+}
+.delete-btn { background-color: #dc2626; }
+.delete-btn:hover { background-color: #b91c1c; }
+.edit-btn { background-color: #f97316; }
+.edit-btn:hover { background-color: #ea580c; }
+.invoice-btn { background-color: #3b82f6; }
+.invoice-btn:hover { background-color: #2563eb; }
+
+/* Print Styles for Invoice View */
+@media print {
     body {
         font-family: 'Cairo', sans-serif;
-        background: #f8f9fa;
-        margin: 0;
-        padding: 20px;
         direction: rtl;
-        min-width: 1200px;
+        color: #000;
     }
-    h1.page-title {
-        text-align: center;
-        color: #333;
-        font-size: 28px;
-        margin-bottom: 20px;
-        font-weight: 700;
-    }
-    .form-container {
-        display: grid;
-        grid-template-columns: repeat(11, 1fr);
-        gap: 10px;
-        margin-bottom: 15px;
-    }
-    .form-group {
-        display: flex;
-        flex-direction: column;
-        align-items: flex-end;
-    }
-    label {
-        font-size: 13px;
-        margin-bottom: 3px;
-        color: #444;
-    }
-    input, button {
-        padding: 10px;
-        font-size: 14px;
-        font-family: 'Cairo', sans-serif;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        box-sizing: border-box;
-        width: 100%;
-    }
-    button {
-        cursor: pointer;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-    }
-    button:hover { background-color: #45a049; }
-    .delete-btn { background-color: red !important; }
-    .edit-btn { background-color: orange !important; }
-    .invoice-btn { background-color: #2196F3 !important; }
-    .search-container {
-        margin-bottom: 15px;
-        display: flex;
-        justify-content: center;
-    }
-    .search-container input {
-        width: 50%;
-        min-width: 250px;
-        padding: 10px;
-    }
-    .table-container { overflow-x: auto; }
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 14px;
-    }
-    th, td {
-        border: 1px solid #333;
-        padding: 8px;
-        text-align: center;
-    }
-    th { background-color: #4CAF50; color: white; }
-    tr:nth-child(even) { background-color: #f2f2f2; }
+    h1, h2 { color: #000 !important; }
+    .print-button { display: none; }
+    table { border: 1px solid #000; }
+    th, td { border: 1px solid #000; }
+    .signature-box { border-top-color: #000; }
+}
 </style>
 </head>
 <body>
 
+<div class="container">
 <h1 class="page-title">شركة عمار العزات وأولاده لتأمين كافة مواد البناء</h1>
 
-<div class="search-container">
-    <input type="text" id="search" placeholder="ابحث برقم الفاتورة أو الاسم أو المنطقة" oninput="searchInvoice()" />
+<div class="form-section">
+    <div class="form-grid">
+        <div class="form-group">
+            <label for="invoiceNo">رقم الفاتورة</label>
+            <input type="text" id="invoiceNo" placeholder="أدخل رقم الفاتورة يدويًا" />
+        </div>
+        <div class="form-group">
+            <label for="date">بالتاريخ</label>
+            <input type="date" id="date" />
+        </div>
+        <div class="form-group span-2">
+            <label for="name">المطلوب من السيد</label>
+            <input type="text" id="name" placeholder="أدخل اسم السيد" />
+        </div>
+        <div class="form-group span-2">
+            <label for="region">المقيم في</label>
+            <input type="text" id="region" placeholder="أدخل المنطقة" />
+        </div>
+        <div class="form-group">
+            <label for="weight">الوزن (كغ)</label>
+            <input type="number" id="weight" placeholder="أدخل الوزن" oninput="calculateTotal()" />
+        </div>
+        <div class="form-group">
+            <label for="type">النوع</label>
+            <input type="text" id="type" placeholder="أدخل النوع" />
+        </div>
+        <div class="form-group">
+            <label for="price">السعر</label>
+            <input type="number" id="price" placeholder="أدخل السعر" oninput="calculateTotal()" />
+        </div>
+        <div class="form-group">
+            <label for="total">المبلغ الإجمالي</label>
+            <input type="number" id="total" readonly />
+        </div>
+        <div class="form-group">
+            <label for="paid">المبلغ المدفوع</label>
+            <input type="number" id="paid" placeholder="أدخل المدفوع" oninput="updateRemaining()" />
+        </div>
+        <div class="form-group">
+            <label for="remaining">المتبقي</label>
+            <input type="number" id="remaining" readonly />
+        </div>
+        <div class="form-group span-4">
+            <label for="note">ملاحظات</label>
+            <input type="text" id="note" placeholder="أدخل الملاحظات" />
+        </div>
+    </div>
+    <div class="button-container">
+        <button id="addBtn" onclick="addInvoice()">إضافة</button>
+        <button class="export-btn" onclick="exportToExcel()">تصدير إلى Excel</button>
+    </div>
 </div>
 
-<div class="form-container">
-    <div class="form-group">
-        <label>رقم الفاتورة</label>
-        <input type="text" id="invoiceNo" placeholder="أدخل رقم الفاتورة يدويًا" />
-    </div>
-    <div class="form-group">
-        <label>بالتاريخ</label>
-        <input type="date" id="date" />
-    </div>
-    <div class="form-group">
-        <label>المطلوب من السيد</label>
-        <input type="text" id="name" placeholder="أدخل اسم السيد" />
-    </div>
-    <div class="form-group">
-        <label>المقيم في</label>
-        <input type="text" id="region" placeholder="أدخل المنطقة" />
-    </div>
-    <div class="form-group">
-        <label>الوزن (كغ)</label>
-        <input type="number" id="weight" placeholder="أدخل الوزن" oninput="calculateTotal()" />
-    </div>
-    <div class="form-group">
-        <label>النوع</label>
-        <input type="text" id="type" placeholder="أدخل النوع" />
-    </div>
-    <div class="form-group">
-        <label>السعر</label>
-        <input type="number" id="price" placeholder="أدخل السعر" oninput="calculateTotal()" />
-    </div>
-    <div class="form-group">
-        <label>المبلغ الإجمالي</label>
-        <input type="number" id="total" readonly />
-    </div>
-    <div class="form-group">
-        <label>المبلغ المدفوع</label>
-        <input type="number" id="paid" placeholder="أدخل المدفوع" oninput="updateRemaining()" />
-    </div>
-    <div class="form-group">
-        <label>المتبقي</label>
-        <input type="number" id="remaining" readonly />
-    </div>
-    <div class="form-group">
-        <label>ملاحظات</label>
-        <input type="text" id="note" placeholder="أدخل الملاحظات" />
-    </div>
-    <button id="addBtn" onclick="addInvoice()">إضافة</button>
-    <button onclick="exportToExcel()">تصدير إلى Excel</button>
+<div class="search-container">
+    <input type="text" id="search" placeholder="ابحث برقم الفاتورة أو الاسم أو المنطقة..." oninput="searchInvoice()" />
 </div>
 
 <div class="table-container">
@@ -158,6 +267,7 @@
         </thead>
         <tbody></tbody>
     </table>
+</div>
 </div>
 
 <script>
@@ -199,7 +309,7 @@ function renderTable(filtered = invoices) {
                 <td>${inv.paid}</td>
                 <td>${inv.remaining}</td>
                 <td>${inv.note}</td>
-                <td>
+                <td class="action-buttons">
                     <button class="invoice-btn" onclick="showInvoice(${index})">عرض</button>
                     <button class="edit-btn" onclick="editInvoice(${index})">تعديل</button>
                     <button class="delete-btn" onclick="deleteInvoice(${index})">حذف</button>
@@ -238,7 +348,7 @@ function addInvoice() {
 }
 
 function clearForm() {
-    document.querySelectorAll(".form-container input").forEach(i => i.value = "");
+    document.querySelectorAll(".form-section input").forEach(i => i.value = "");
     setTodayDate();
 }
 
@@ -260,9 +370,11 @@ function editInvoice(index) {
 }
 
 function deleteInvoice(index) {
-    invoices.splice(index, 1);
-    localStorage.setItem("invoices", JSON.stringify(invoices));
-    renderTable();
+    if (confirm("هل أنت متأكد من حذف هذه الفاتورة؟")) {
+        invoices.splice(index, 1);
+        localStorage.setItem("invoices", JSON.stringify(invoices));
+        renderTable();
+    }
 }
 
 function searchInvoice() {
@@ -275,7 +387,7 @@ function searchInvoice() {
 }
 
 function exportToExcel() {
-    let csv = "رقم الفاتورة,بالتاريخ,المطلوب من السيد,المقيم في,الوزن,النوع,s السعر,الإجمالي,المدفوع,المتبقي,ملاحظات\n";
+    let csv = "رقم الفاتورة,بالتاريخ,المطلوب من السيد,المقيم في,الوزن,النوع,السعر,الإجمالي,المدفوع,المتبقي,ملاحظات\n";
     invoices.forEach(inv => {
         csv += `${inv.invoiceNo},${inv.date},${inv.name},${inv.region},${inv.weight},${inv.type},${inv.price},${inv.total},${inv.paid},${inv.remaining},${inv.note}\n`;
     });
@@ -283,7 +395,7 @@ function exportToExcel() {
     const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "فواتير_شركة_عمار_العزات.csv";
+    link.download = "فواتيرشركةعمار_العزات.csv";
     link.click();
 }
 
@@ -296,7 +408,8 @@ function showInvoice(index) {
         <title>فاتورة</title>
         <style>
             body { font-family: 'Cairo', sans-serif; direction: rtl; padding: 20px; }
-            h1 { text-align: center; margin-bottom: 10px; }
+            h1 { text-align: center; margin-bottom: 10px; color: #1e40af; }
+            h2 { text-align: center; margin-bottom: 20px; font-weight: 600; }
             table { width: 100%; border-collapse: collapse; margin-top: 20px; }
             th, td { border: 1px solid #333; padding: 10px; text-align: right; }
             th { background: #f2f2f2; width: 35%; }
@@ -311,6 +424,7 @@ function showInvoice(index) {
         <h2 style="text-align:center;">فاتورة السيد ${inv.name}</h2>
         <button class="print-button" onclick="window.print()">طباعة</button>
         <table>
+            <tr><th>رقم الفاتورة</th><td>${inv.invoiceNo}</td></tr>
             <tr><th>بالتاريخ</th><td>${inv.date}</td></tr>
             <tr><th>المطلوب من السيد</th><td>${inv.name}</td></tr>
             <tr><th>المقيم في</th><td>${inv.region}</td></tr>
