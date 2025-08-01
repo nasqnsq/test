@@ -23,7 +23,7 @@
     }
     .form-container {
         display: grid;
-        grid-template-columns: repeat(10, 1fr);
+        grid-template-columns: repeat(11, 1fr);
         gap: 10px;
         margin-bottom: 15px;
     }
@@ -86,10 +86,14 @@
 <h1 class="page-title">شركة عمار العزات وأولاده لتأمين كافة مواد البناء</h1>
 
 <div class="search-container">
-    <input type="text" id="search" placeholder="ابحث بالمطلوب من السيد" oninput="searchInvoice()" />
+    <input type="text" id="search" placeholder="ابحث برقم الفاتورة أو الاسم أو المنطقة" oninput="searchInvoice()" />
 </div>
 
 <div class="form-container">
+    <div class="form-group">
+        <label>رقم الفاتورة</label>
+        <input type="text" id="invoiceNo" readonly />
+    </div>
     <div class="form-group">
         <label>بالتاريخ</label>
         <input type="date" id="date" />
@@ -138,6 +142,7 @@
     <table id="invoiceTable">
         <thead>
             <tr>
+                <th>رقم الفاتورة</th>
                 <th>بالتاريخ</th>
                 <th>المطلوب من السيد</th>
                 <th>المقيم في</th>
@@ -161,6 +166,7 @@ let editIndex = null;
 
 function setTodayDate() {
     document.getElementById("date").value = new Date().toISOString().split("T")[0];
+    document.getElementById("invoiceNo").value = invoices.length ? invoices[invoices.length - 1].invoiceNo + 1 : 1;
 }
 
 function calculateTotal() {
@@ -183,6 +189,7 @@ function renderTable(filtered = invoices) {
     filtered.forEach((inv, index) => {
         tbody.innerHTML += `
             <tr>
+                <td>${inv.invoiceNo}</td>
                 <td>${inv.date}</td>
                 <td>${inv.name}</td>
                 <td>${inv.region}</td>
@@ -204,6 +211,7 @@ function renderTable(filtered = invoices) {
 
 function addInvoice() {
     const inv = {
+        invoiceNo: parseInt(document.getElementById("invoiceNo").value),
         date: document.getElementById("date").value,
         name: document.getElementById("name").value,
         region: document.getElementById("region").value,
@@ -237,6 +245,7 @@ function clearForm() {
 
 function editInvoice(index) {
     const inv = invoices[index];
+    document.getElementById("invoiceNo").value = inv.invoiceNo;
     document.getElementById("date").value = inv.date;
     document.getElementById("name").value = inv.name;
     document.getElementById("region").value = inv.region;
@@ -260,15 +269,16 @@ function deleteInvoice(index) {
 function searchInvoice() {
     const term = document.getElementById("search").value.toLowerCase();
     renderTable(invoices.filter(inv =>
+        inv.invoiceNo.toString().includes(term) ||
         inv.name.toLowerCase().includes(term) ||
         inv.region.toLowerCase().includes(term)
     ));
 }
 
 function exportToExcel() {
-    let csv = "بالتاريخ,المطلوب من السيد,المقيم في,الوزن,النوع,السعر,الإجمالي,المدفوع,المتبقي,ملاحظات\n";
+    let csv = "رقم الفاتورة,بالتاريخ,المطلوب من السيد,المقيم في,الوزن,النوع,السعر,الإجمالي,المدفوع,المتبقي,ملاحظات\n";
     invoices.forEach(inv => {
-        csv += `${inv.date},${inv.name},${inv.region},${inv.weight},${inv.type},${inv.price},${inv.total},${inv.paid},${inv.remaining},${inv.note}\n`;
+        csv += `${inv.invoiceNo},${inv.date},${inv.name},${inv.region},${inv.weight},${inv.type},${inv.price},${inv.total},${inv.paid},${inv.remaining},${inv.note}\n`;
     });
     const BOM = '\uFEFF';
     const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
@@ -299,7 +309,7 @@ function showInvoice(index) {
         </head>
         <body>
         <h1>شركة عمار العزات وأولاده لتأمين كافة مواد البناء</h1>
-        <h2 style="text-align:center;">فاتورة السيد</h2>
+        <h2 style="text-align:center;">فاتورة السيد رقم ${inv.invoiceNo}</h2>
         <button class="print-button" onclick="window.print()">طباعة</button>
         <table>
             <tr><th>بالتاريخ</th><td>${inv.date}</td></tr>
