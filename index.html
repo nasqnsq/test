@@ -110,14 +110,32 @@ input[readonly] {
 .search-container {
     margin: 25px 0;
     text-align: center;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
 }
 .search-container input {
     width: 100%;
-    max-width: 600px;
+    max-width: 500px;
     padding: 12px 15px;
     border: 1px solid #ccc;
     border-radius: 8px;
     font-size: 15px;
+}
+.search-container button {
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: 'Cairo', sans-serif;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    color: white;
+    background-color: #2563eb;
+    transition: background-color 0.2s ease;
+}
+.search-container button:hover {
+    background-color: #1e40af;
 }
 
 /* Table Section */
@@ -244,7 +262,8 @@ td:last-child {
 </div>
 
 <div class="search-container">
-    <input type="text" id="search" placeholder="ابحث برقم الفاتورة أو الاسم أو المنطقة..." oninput="searchInvoice()" />
+    <input type="text" id="search" placeholder="ابحث برقم الفاتورة أو الاسم أو المنطقة..." />
+    <button onclick="searchInvoice()">بحث</button>
 </div>
 
 <div class="table-container">
@@ -296,9 +315,15 @@ function updateRemaining() {
 function renderTable() {
     const tbody = document.querySelector("#invoiceTable tbody");
     tbody.innerHTML = "";
-    const invoicesToRender = visibleInvoicesIndices.length ? visibleInvoicesIndices : invoices.map((_, index) => index);
     
-    invoicesToRender.forEach(originalIndex => {
+    let invoicesToRenderIndices;
+    if (visibleInvoicesIndices.length === 0 && document.getElementById("search").value.trim() === "") {
+        invoicesToRenderIndices = invoices.map((_, index) => index);
+    } else {
+        invoicesToRenderIndices = visibleInvoicesIndices;
+    }
+    
+    invoicesToRenderIndices.forEach(originalIndex => {
         const inv = invoices[originalIndex];
         if (inv) {
             tbody.innerHTML += `
@@ -389,18 +414,14 @@ function deleteInvoice(index) {
 
 function searchInvoice() {
     const term = document.getElementById("search").value.toLowerCase().trim();
-    if (term === "") {
-        visibleInvoicesIndices = [];
-    } else {
-        visibleInvoicesIndices = invoices
-            .map((inv, index) => ({ inv, index }))
-            .filter(item =>
-                item.inv.invoiceNo.toString().toLowerCase().includes(term) ||
-                item.inv.name.toLowerCase().includes(term) ||
-                item.inv.region.toLowerCase().includes(term)
-            )
-            .map(item => item.index);
-    }
+    visibleInvoicesIndices = invoices
+        .map((inv, index) => ({ inv, index }))
+        .filter(item =>
+            item.inv.invoiceNo.toString().toLowerCase().includes(term) ||
+            item.inv.name.toLowerCase().includes(term) ||
+            item.inv.region.toLowerCase().includes(term)
+        )
+        .map(item => item.index);
     renderTable();
 }
 
