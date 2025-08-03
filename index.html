@@ -231,6 +231,10 @@ td:last-child {
             <input type="number" id="weight" placeholder="أدخل الوزن" oninput="calculateTotal()" />
         </div>
         <div class="form-group">
+            <label for="count">العدد</label>
+            <input type="number" id="count" placeholder="أدخل العدد" />
+        </div>
+        <div class="form-group">
             <label for="type">النوع</label>
             <input type="text" id="type" placeholder="أدخل النوع" />
         </div>
@@ -275,6 +279,7 @@ td:last-child {
                 <th>المطلوب من السيد</th>
                 <th>المقيم في</th>
                 <th>الوزن (كغ)</th>
+                <th>العدد</th>
                 <th>النوع</th>
                 <th>السعر</th>
                 <th>الإجمالي</th>
@@ -317,7 +322,8 @@ function renderTable() {
     tbody.innerHTML = "";
     
     let invoicesToRenderIndices;
-    if (visibleInvoicesIndices.length === 0 && document.getElementById("search").value.trim() === "") {
+    const searchTerm = document.getElementById("search").value.trim();
+    if (searchTerm === "") {
         invoicesToRenderIndices = invoices.map((_, index) => index);
     } else {
         invoicesToRenderIndices = visibleInvoicesIndices;
@@ -333,6 +339,7 @@ function renderTable() {
                     <td>${inv.name}</td>
                     <td>${inv.region}</td>
                     <td>${inv.weight}</td>
+                    <td>${inv.count}</td>
                     <td>${inv.type}</td>
                     <td>${inv.price}</td>
                     <td>${inv.total}</td>
@@ -356,6 +363,7 @@ function addInvoice() {
         name: document.getElementById("name").value.trim(),
         region: document.getElementById("region").value.trim(),
         weight: document.getElementById("weight").value,
+        count: document.getElementById("count").value,
         type: document.getElementById("type").value,
         price: document.getElementById("price").value,
         total: document.getElementById("total").value,
@@ -392,6 +400,7 @@ function editInvoice(index) {
     document.getElementById("name").value = inv.name;
     document.getElementById("region").value = inv.region;
     document.getElementById("weight").value = inv.weight;
+    document.getElementById("count").value = inv.count;
     document.getElementById("type").value = inv.type;
     document.getElementById("price").value = inv.price;
     document.getElementById("total").value = inv.total;
@@ -426,9 +435,9 @@ function searchInvoice() {
 }
 
 function exportToExcel() {
-    let csv = "رقم الفاتورة,بالتاريخ,المطلوب من السيد,المقيم في,الوزن,النوع,السعر,الإجمالي,المدفوع,المتبقي,ملاحظات\n";
+    let csv = "رقم الفاتورة,بالتاريخ,المطلوب من السيد,المقيم في,الوزن,العدد,النوع,السعر,الإجمالي,المدفوع,المتبقي,ملاحظات\n";
     invoices.forEach(inv => {
-        csv += `${inv.invoiceNo},${inv.date},${inv.name},${inv.region},${inv.weight},${inv.type},${inv.price},${inv.total},${inv.paid},${inv.remaining},${inv.note}\n`;
+        csv += `${inv.invoiceNo},${inv.date},${inv.name},${inv.region},${inv.weight},${inv.count},${inv.type},${inv.price},${inv.total},${inv.paid},${inv.remaining},${inv.note}\n`;
     });
     const BOM = '\uFEFF';
     const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
@@ -468,6 +477,7 @@ function showInvoice(index) {
             <tr><th>المطلوب من السيد</th><td>${inv.name}</td></tr>
             <tr><th>المقيم في</th><td>${inv.region}</td></tr>
             <tr><th>الوزن (كغ)</th><td>${inv.weight}</td></tr>
+            <tr><th>العدد</th><td>${inv.count}</td></tr>
             <tr><th>النوع</th><td>${inv.type}</td></tr>
             <tr><th>السعر</th><td>${inv.price}</td></tr>
             <tr><th>المبلغ الإجمالي</th><td>${inv.total}</td></tr>
