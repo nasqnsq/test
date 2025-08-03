@@ -495,4 +495,27 @@ function showInvoice(index) {
         <button class="print-button" onclick="window.print()">طباعة</button>
         <table>
             <tr><th>رقم الفاتورة</th><td>${inv.invoiceNo}</td></tr>
-            <tr><th>بالتاريخ
+            <tr><th>بالتاريخ</th><td>${inv.date}</td></tr>
+            <tr><th>المطلوب من السيد</th><td>${inv.name}</td></tr>
+            <tr><th>المقيم في</th><td>${inv.region}</td></tr>
+            <tr><th>الوزن (كغ)</th><td>${inv.weight}</td></tr>
+            <tr><th>العدد</th><td>${inv.count}</td></tr>
+            <tr><th>النوع</th><td>${inv.type}</td></tr>
+            <tr><th>السعر</th><td>${inv.price}</td></tr>
+            <tr><th>المبلغ الإجمالي</th><td>${inv.total}</td></tr>
+            <tr><th>المبلغ المدفوع</th><td>${inv.paid}</td></tr>
+            <tr><th>المتبقي</th><td>${inv.remaining}</td></tr>
+            <tr><th>ملاحظات</th><td>${inv.note}</td></tr>
+        </table>
+        <div class="signature-section">
+            <div class="signature-box">التوقيع</div>
+        </div>
+        </body>
+        </html>
+    `);
+    w.document.close();
+}
+window.onload = () => { setTodayDate(); renderTable(); };
+</script>
+</body>
+</html>
