@@ -273,9 +273,7 @@ td:last-child {
 <script>
 let invoices = JSON.parse(localStorage.getItem("invoices")) || [];
 let editIndex = null;
-
-// Keep track of the original indices of the visible invoices
-let visibleInvoicesIndices = invoices.map((_, index) => index);
+let visibleInvoicesIndices = [];
 
 function setTodayDate() {
     document.getElementById("date").value = new Date().toISOString().split("T")[0];
@@ -298,7 +296,9 @@ function updateRemaining() {
 function renderTable() {
     const tbody = document.querySelector("#invoiceTable tbody");
     tbody.innerHTML = "";
-    visibleInvoicesIndices.forEach(originalIndex => {
+    const invoicesToRender = visibleInvoicesIndices.length ? visibleInvoicesIndices : invoices.map((_, index) => index);
+    
+    invoicesToRender.forEach(originalIndex => {
         const inv = invoices[originalIndex];
         if (inv) {
             tbody.innerHTML += `
@@ -349,7 +349,9 @@ function addInvoice() {
         invoices.push(inv);
     }
     localStorage.setItem("invoices", JSON.stringify(invoices));
-    searchInvoice();
+    document.getElementById("search").value = ""; // Clear search box
+    visibleInvoicesIndices = []; // Reset visible indices
+    renderTable(); // Re-render table with all invoices
     clearForm();
 }
 
@@ -385,14 +387,18 @@ function deleteInvoice(index) {
 
 function searchInvoice() {
     const term = document.getElementById("search").value.toLowerCase();
-    visibleInvoicesIndices = invoices
-        .map((inv, index) => ({ inv, index }))
-        .filter(item =>
-            item.inv.invoiceNo.toString().includes(term) ||
-            item.inv.name.toLowerCase().includes(term) ||
-            item.inv.region.toLowerCase().includes(term)
-        )
-        .map(item => item.index);
+    if (term === "") {
+        visibleInvoicesIndices = [];
+    } else {
+        visibleInvoicesIndices = invoices
+            .map((inv, index) => ({ inv, index }))
+            .filter(item =>
+                item.inv.invoiceNo.toString().includes(term) ||
+                item.inv.name.toLowerCase().includes(term) ||
+                item.inv.region.toLowerCase().includes(term)
+            )
+            .map(item => item.index);
+    }
     renderTable();
 }
 
