@@ -14,7 +14,6 @@ body {
     padding: 20px;
     direction: rtl;
     color: #333;
-    min-width: 1200px;
 }
 .container {
     max-width: 1200px;
@@ -150,19 +149,37 @@ table {
     border-radius: 8px;
     overflow: hidden;
     background-color: #fff;
+    table-layout: fixed;
 }
 th, td {
     border: none;
     padding: 14px 10px;
     text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 th {
     background-color: #16a34a;
     color: white;
     font-weight: 600;
     font-size: 15px;
-    white-space: nowrap;
 }
+/* Adjusting column widths to fit */
+th:nth-child(1), td:nth-child(1) { width: 8%; } /* رقم الفاتورة */
+th:nth-child(2), td:nth-child(2) { width: 8%; } /* بالتاريخ */
+th:nth-child(3), td:nth-child(3) { width: 12%; } /* المطلوب من السيد */
+th:nth-child(4), td:nth-child(4) { width: 10%; } /* المقيم في */
+th:nth-child(5), td:nth-child(5) { width: 6%; } /* الوزن */
+th:nth-child(6), td:nth-child(6) { width: 6%; } /* العدد */
+th:nth-child(7), td:nth-child(7) { width: 8%; } /* النوع */
+th:nth-child(8), td:nth-child(8) { width: 6%; } /* السعر */
+th:nth-child(9), td:nth-child(9) { width: 8%; } /* الإجمالي */
+th:nth-child(10), td:nth-child(10) { width: 7%; } /* المدفوع */
+th:nth-child(11), td:nth-child(11) { width: 7%; } /* المتبقي */
+th:nth-child(12), td:nth-child(12) { width: 15%; } /* ملاحظات */
+th:nth-child(13), td:nth-child(13) { width: 15%; } /* إجراء */
+
 tr:nth-child(even) { background-color: #f9fafb; }
 tr:hover { background-color: #f3f4f6; }
 td {
@@ -228,11 +245,11 @@ td:last-child {
         </div>
         <div class="form-group">
             <label for="weight">الوزن (كغ)</label>
-            <input type="number" id="weight" placeholder="أدخل الوزن" oninput="calculateTotal()" />
+            <input type="number" id="weight" placeholder="أدخل الوزن" />
         </div>
         <div class="form-group">
             <label for="count">العدد</label>
-            <input type="number" id="count" placeholder="أدخل العدد" />
+            <input type="text" id="count" placeholder="أدخل العدد" oninput="calculateTotal()" />
         </div>
         <div class="form-group">
             <label for="type">النوع</label>
@@ -304,9 +321,9 @@ function setTodayDate() {
 }
 
 function calculateTotal() {
-    const weight = parseFloat(document.getElementById("weight").value) || 0;
+    const count = parseFloat(document.getElementById("count").value) || 0;
     const price = parseFloat(document.getElementById("price").value) || 0;
-    const total = weight * price;
+    const total = count * price;
     document.getElementById("total").value = total;
     updateRemaining();
 }
@@ -372,7 +389,7 @@ function addInvoice() {
         note: document.getElementById("note").value.trim()
     };
 
-    if (!inv.invoiceNo || !inv.date || !inv.name || !inv.weight || !inv.price) return alert("الرجاء إدخال جميع الحقول!");
+    if (!inv.invoiceNo || !inv.date || !inv.name || !inv.count || !inv.price) return alert("الرجاء إدخال جميع الحقول الإلزامية!");
 
     if (editIndex !== null) {
         invoices[editIndex] = inv;
@@ -428,7 +445,8 @@ function searchInvoice() {
         .filter(item =>
             item.inv.invoiceNo.toString().toLowerCase().includes(term) ||
             item.inv.name.toLowerCase().includes(term) ||
-            item.inv.region.toLowerCase().includes(term)
+            item.inv.region.toLowerCase().includes(term) ||
+            (item.inv.note && item.inv.note.toLowerCase().includes(term))
         )
         .map(item => item.index);
     renderTable();
