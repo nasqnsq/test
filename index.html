@@ -44,7 +44,7 @@ h1.page-title {
 }
 .form-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 4 columns layout */
+    grid-template-columns: repeat(4, 1fr);
     gap: 15px;
 }
 .form-group {
@@ -274,6 +274,9 @@ td:last-child {
 let invoices = JSON.parse(localStorage.getItem("invoices")) || [];
 let editIndex = null;
 
+// Keep track of the original indices of the visible invoices
+let visibleInvoicesIndices = invoices.map((_, index) => index);
+
 function setTodayDate() {
     document.getElementById("date").value = new Date().toISOString().split("T")[0];
 }
@@ -292,29 +295,32 @@ function updateRemaining() {
     document.getElementById("remaining").value = total - paid;
 }
 
-function renderTable(filtered = invoices) {
+function renderTable() {
     const tbody = document.querySelector("#invoiceTable tbody");
     tbody.innerHTML = "";
-    filtered.forEach((inv, index) => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${inv.invoiceNo}</td>
-                <td>${inv.date}</td>
-                <td>${inv.name}</td>
-                <td>${inv.region}</td>
-                <td>${inv.weight}</td>
-                <td>${inv.type}</td>
-                <td>${inv.price}</td>
-                <td>${inv.total}</td>
-                <td>${inv.paid}</td>
-                <td>${inv.remaining}</td>
-                <td>${inv.note}</td>
-                <td class="action-buttons">
-                    <button class="invoice-btn" onclick="showInvoice(${index})">عرض</button>
-                    <button class="edit-btn" onclick="editInvoice(${index})">تعديل</button>
-                    <button class="delete-btn" onclick="deleteInvoice(${index})">حذف</button>
-                </td>
-            </tr>`;
+    visibleInvoicesIndices.forEach(originalIndex => {
+        const inv = invoices[originalIndex];
+        if (inv) {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${inv.invoiceNo}</td>
+                    <td>${inv.date}</td>
+                    <td>${inv.name}</td>
+                    <td>${inv.region}</td>
+                    <td>${inv.weight}</td>
+                    <td>${inv.type}</td>
+                    <td>${inv.price}</td>
+                    <td>${inv.total}</td>
+                    <td>${inv.paid}</td>
+                    <td>${inv.remaining}</td>
+                    <td>${inv.note}</td>
+                    <td class="action-buttons">
+                        <button class="invoice-btn" onclick="showInvoice(${originalIndex})">عرض</button>
+                        <button class="edit-btn" onclick="editInvoice(${originalIndex})">تعديل</button>
+                        <button class="delete-btn" onclick="deleteInvoice(${originalIndex})">حذف</button>
+                    </td>
+                </tr>`;
+        }
     });
 }
 
@@ -343,7 +349,7 @@ function addInvoice() {
         invoices.push(inv);
     }
     localStorage.setItem("invoices", JSON.stringify(invoices));
-    renderTable();
+    searchInvoice();
     clearForm();
 }
 
@@ -373,17 +379,21 @@ function deleteInvoice(index) {
     if (confirm("هل أنت متأكد من حذف هذه الفاتورة؟")) {
         invoices.splice(index, 1);
         localStorage.setItem("invoices", JSON.stringify(invoices));
-        renderTable();
+        searchInvoice();
     }
 }
 
 function searchInvoice() {
     const term = document.getElementById("search").value.toLowerCase();
-    renderTable(invoices.filter(inv =>
-        inv.invoiceNo.toString().includes(term) ||
-        inv.name.toLowerCase().includes(term) ||
-        inv.region.toLowerCase().includes(term)
-    ));
+    visibleInvoicesIndices = invoices
+        .map((inv, index) => ({ inv, index }))
+        .filter(item =>
+            item.inv.invoiceNo.toString().includes(term) ||
+            item.inv.name.toLowerCase().includes(term) ||
+            item.inv.region.toLowerCase().includes(term)
+        )
+        .map(item => item.index);
+    renderTable();
 }
 
 function exportToExcel() {
