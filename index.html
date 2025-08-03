@@ -328,15 +328,15 @@ function addInvoice() {
     const inv = {
         invoiceNo: document.getElementById("invoiceNo").value,
         date: document.getElementById("date").value,
-        name: document.getElementById("name").value,
-        region: document.getElementById("region").value,
+        name: document.getElementById("name").value.trim(),
+        region: document.getElementById("region").value.trim(),
         weight: document.getElementById("weight").value,
         type: document.getElementById("type").value,
         price: document.getElementById("price").value,
         total: document.getElementById("total").value,
         paid: document.getElementById("paid").value,
         remaining: document.getElementById("remaining").value,
-        note: document.getElementById("note").value
+        note: document.getElementById("note").value.trim()
     };
 
     if (!inv.invoiceNo || !inv.date || !inv.name || !inv.weight || !inv.price) return alert("الرجاء إدخال جميع الحقول!");
@@ -349,9 +349,9 @@ function addInvoice() {
         invoices.push(inv);
     }
     localStorage.setItem("invoices", JSON.stringify(invoices));
-    document.getElementById("search").value = ""; // Clear search box
-    visibleInvoicesIndices = []; // Reset visible indices
-    renderTable(); // Re-render table with all invoices
+    document.getElementById("search").value = "";
+    visibleInvoicesIndices = [];
+    renderTable();
     clearForm();
 }
 
@@ -381,19 +381,21 @@ function deleteInvoice(index) {
     if (confirm("هل أنت متأكد من حذف هذه الفاتورة؟")) {
         invoices.splice(index, 1);
         localStorage.setItem("invoices", JSON.stringify(invoices));
-        searchInvoice();
+        document.getElementById("search").value = "";
+        visibleInvoicesIndices = [];
+        renderTable();
     }
 }
 
 function searchInvoice() {
-    const term = document.getElementById("search").value.toLowerCase();
+    const term = document.getElementById("search").value.toLowerCase().trim();
     if (term === "") {
         visibleInvoicesIndices = [];
     } else {
         visibleInvoicesIndices = invoices
             .map((inv, index) => ({ inv, index }))
             .filter(item =>
-                item.inv.invoiceNo.toString().includes(term) ||
+                item.inv.invoiceNo.toString().toLowerCase().includes(term) ||
                 item.inv.name.toLowerCase().includes(term) ||
                 item.inv.region.toLowerCase().includes(term)
             )
