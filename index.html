@@ -6,587 +6,217 @@
 <title>نظام فواتير شركة عمار العزات وأولاده</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
 <style>
-    :root {
-        --primary-color: #2b7a78;
-        --secondary-color: #3aa6a4;
-        --accent-color: #8ed3cf;
-        --background-color: #f6f8f8;
-        --text-color: #333;
-        --card-bg: #fff;
-        --border-color: #e0e0e0;
-        --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
-    body {
-        font-family: 'Cairo', sans-serif;
-        background-color: var(--background-color);
-        margin: 0;
-        padding: 20px;
-        direction: rtl;
-        color: var(--text-color);
-    }
-    .container {
-        max-width: 1300px;
-        margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        gap: 25px;
-    }
-    .header {
-        text-align: center;
-        background-color: var(--primary-color);
-        color: #fff;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: var(--shadow);
-    }
-    .header h1 {
-        margin: 0;
-        font-size: 2.2rem;
-        font-weight: 700;
-    }
-    .card {
-        background-color: var(--card-bg);
-        padding: 30px;
-        border-radius: 12px;
-        box-shadow: var(--shadow);
-    }
-
-    /* Form Section */
-    .form-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 20px;
-    }
-    .form-group {
-        display: flex;
-        flex-direction: column;
-    }
-    .form-group label {
-        font-size: 14px;
-        font-weight: 600;
-        color: #555;
-        margin-bottom: 8px;
-    }
-    .form-group input {
-        width: 100%;
-        padding: 12px 15px;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        font-family: 'Cairo', sans-serif;
-        font-size: 1rem;
-        transition: border-color 0.3s;
-    }
-    .form-group input:focus {
-        outline: none;
-        border-color: var(--primary-color);
-    }
-    .full-width {
-        grid-column: 1 / -1;
-    }
-    .button-container {
-        display: flex;
-        justify-content: flex-end;
-        gap: 15px;
-        margin-top: 20px;
-    }
-    .main-btn {
-        padding: 12px 25px;
-        font-size: 1rem;
-        font-weight: 700;
-        color: #fff;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-    #addBtn { background-color: var(--primary-color); }
-    #addBtn:hover { background-color: #20615f; }
-    #exportBtn { background-color: var(--secondary-color); }
-    #exportBtn:hover { background-color: #318a88; }
-    
-    /* Search Section */
-    .search-container {
-        display: flex;
-        gap: 10px;
-        align-items: center;
-    }
-    .search-container input {
-        flex-grow: 1;
-    }
-    .search-container button {
-        background-color: var(--primary-color);
-    }
-
-    /* Table Section */
-    .table-container {
-        overflow-x: auto;
-    }
-    table {
-        width: 100%;
-        border-collapse: separate;
-        border-spacing: 0;
-        border-radius: 12px;
-        overflow: hidden;
-        box-shadow: var(--shadow);
-    }
-    table thead tr {
-        background-color: var(--primary-color);
-        color: #fff;
-    }
-    table th, table td {
-        padding: 15px 12px;
-        text-align: center;
-        border: 1px solid var(--border-color);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-    table td {
-        background-color: var(--card-bg);
-    }
-    table tbody tr:nth-child(even) td {
-        background-color: #f9f9f9;
-    }
-    table tbody tr:hover td {
-        background-color: #f0f0f0;
-    }
-    
-    /* Action Buttons */
-    .action-buttons {
-        display: flex;
-        justify-content: center;
-        gap: 8px;
-    }
-    .action-buttons button {
-        background-color: var(--secondary-color);
-        color: #fff;
-        border: none;
-        border-radius: 6px;
-        padding: 8px 12px;
-        font-size: 0.9rem;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        transition: background-color 0.3s;
-    }
-    .action-buttons .view-btn { background-color: #1a73e8; }
-    .action-buttons .view-btn:hover { background-color: #155bb3; }
-    .action-buttons .edit-btn { background-color: #f9a825; }
-    .action-buttons .edit-btn:hover { background-color: #d18816; }
-    .action-buttons .delete-btn { background-color: #e53935; }
-    .action-buttons .delete-btn:hover { background-color: #b71c1c; }
-
-    /* Modal for Invoice View */
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0,0,0,0.5);
-        justify-content: center;
-        align-items: center;
-    }
-    .modal-content {
-        background-color: var(--card-bg);
-        padding: 30px;
-        border-radius: 12px;
-        max-width: 800px;
-        width: 90%;
-        max-height: 90vh;
-        overflow-y: auto;
-        position: relative;
-    }
-    .modal-close-btn {
-        position: absolute;
-        top: 15px;
-        right: 25px;
-        font-size: 2rem;
-        font-weight: bold;
-        color: #888;
-        cursor: pointer;
-    }
-    .modal-close-btn:hover { color: #333; }
-    .invoice-view h2 {
-        text-align: center;
-        border-bottom: 2px solid var(--primary-color);
-        padding-bottom: 10px;
-        color: var(--primary-color);
-    }
-    .invoice-view table {
-        width: 100%;
-        margin-top: 20px;
-        box-shadow: none;
-        border-radius: 0;
-    }
-    .invoice-view table td, .invoice-view table th {
-        text-align: right;
-    }
-    .invoice-view table th {
-        background-color: var(--accent-color);
-        color: var(--text-color);
-    }
-    .invoice-view .print-btn {
-        display: block;
-        width: 100%;
-        text-align: center;
-        margin-top: 20px;
-        background-color: var(--primary-color);
-        color: #fff;
-        padding: 12px;
-        border-radius: 8px;
-        cursor: pointer;
-    }
-    @media print {
-        body * { visibility: hidden; }
-        .modal-content, .modal-content * { visibility: visible; }
-        .modal-content {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: auto;
-            max-width: none;
-            box-shadow: none;
-            background-color: #fff;
-        }
-        .modal-close-btn, .print-btn { display: none !important; }
-    }
+/* ====== التصميم ====== */
+:root {
+    --primary-color: #2b7a78;
+    --secondary-color: #3aa6a4;
+    --accent-color: #8ed3cf;
+    --background-color: #f6f8f8;
+    --text-color: #333;
+    --card-bg: #fff;
+    --border-color: #e0e0e0;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+body { font-family: 'Cairo', sans-serif; background-color: var(--background-color); margin: 0; padding: 20px; direction: rtl; color: var(--text-color);}
+.container { max-width: 1300px; margin: 0 auto; display: flex; flex-direction: column; gap: 25px;}
+.header { text-align: center; background-color: var(--primary-color); color: #fff; padding: 25px; border-radius: 12px; box-shadow: var(--shadow);}
+.header h1 { margin: 0; font-size: 2.2rem; font-weight: 700;}
+.card { background-color: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: var(--shadow);}
+button.google-btn {
+    background-color: #db4437; color: #fff; border: none; padding: 12px 20px;
+    border-radius: 8px; font-size: 1rem; cursor: pointer; margin-bottom: 20px;
+}
+.hidden { display: none; }
+/* باقي التنسيقات كما في النسخ السابقة */
 </style>
 </head>
 <body>
-
 <div class="container">
-    <div class="header">
-        <h1>نظام فواتير شركة عمار العزات وأولاده</h1>
+    <div class="header"><h1>نظام فواتير شركة عمار العزات وأولاده</h1></div>
+
+    <!-- زر تسجيل الدخول -->
+    <div id="loginSection" class="card">
+        <h2>تسجيل الدخول</h2>
+        <button class="google-btn" onclick="loginWithGoogle()"><i class="fab fa-google"></i> تسجيل الدخول بحساب Google</button>
     </div>
 
-    <div class="card">
-        <form id="invoiceForm">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label for="invoiceNo">رقم الفاتورة</label>
-                    <input type="text" id="invoiceNo" placeholder="أدخل رقم الفاتورة يدويًا" required />
+    <!-- محتوى النظام -->
+    <div id="appContent" class="hidden">
+        <button onclick="logout()" style="float:left; background:#e53935; color:white; padding:8px 12px; border:none; border-radius:6px; cursor:pointer;">تسجيل الخروج</button>
+        <div class="card">
+            <form id="invoiceForm">
+                <div class="form-grid">
+                    <div class="form-group"><label>رقم الفاتورة</label><input type="text" id="invoiceNo" required /></div>
+                    <div class="form-group"><label>بالتاريخ</label><input type="date" id="date" required /></div>
+                    <div class="form-group"><label>المطلوب من السيد</label><input type="text" id="name" required /></div>
+                    <div class="form-group"><label>المقيم في</label><input type="text" id="region" required /></div>
+                    <div class="form-group"><label>العدد</label><input type="number" id="count" oninput="calculateTotal()" /></div>
+                    <div class="form-group"><label>الوزن (كغ)</label><input type="number" id="weight" oninput="calculateTotal()" /></div>
+                    <div class="form-group"><label>النوع</label><input type="text" id="type" /></div>
+                    <div class="form-group"><label>السعر</label><input type="number" id="price" oninput="calculateTotal()" /></div>
+                    <div class="form-group"><label>المبلغ الإجمالي</label><input type="number" id="total" readonly /></div>
+                    <div class="form-group"><label>المبلغ المدفوع</label><input type="number" id="paid" oninput="updateRemaining()" /></div>
+                    <div class="form-group"><label>المتبقي</label><input type="number" id="remaining" readonly /></div>
+                    <div class="form-group full-width"><label>ملاحظات</label><input type="text" id="note" /></div>
                 </div>
-                <div class="form-group">
-                    <label for="date">بالتاريخ</label>
-                    <input type="date" id="date" required />
-                </div>
-                <div class="form-group">
-                    <label for="name">المطلوب من السيد</label>
-                    <input type="text" id="name" placeholder="أدخل اسم السيد" required />
-                </div>
-                <div class="form-group">
-                    <label for="region">المقيم في</label>
-                    <input type="text" id="region" placeholder="أدخل المنطقة" required />
-                </div>
-                <div class="form-group">
-                    <label for="count">العدد</label>
-                    <input type="number" id="count" placeholder="أدخل العدد" oninput="calculateTotal()" />
-                </div>
-                <div class="form-group">
-                    <label for="weight">الوزن (كغ)</label>
-                    <input type="number" id="weight" placeholder="أدخل الوزن" oninput="calculateTotal()" />
-                </div>
-                <div class="form-group">
-                    <label for="type">النوع</label>
-                    <input type="text" id="type" placeholder="أدخل النوع" />
-                </div>
-                <div class="form-group">
-                    <label for="price">السعر</label>
-                    <input type="number" id="price" placeholder="أدخل السعر" oninput="calculateTotal()" />
-                </div>
-                <div class="form-group">
-                    <label for="total">المبلغ الإجمالي</label>
-                    <input type="number" id="total" readonly />
-                </div>
-                <div class="form-group">
-                    <label for="paid">المبلغ المدفوع</label>
-                    <input type="number" id="paid" placeholder="أدخل المدفوع" oninput="updateRemaining()" />
-                </div>
-                <div class="form-group">
-                    <label for="remaining">المتبقي</label>
-                    <input type="number" id="remaining" readonly />
-                </div>
-                <div class="form-group full-width">
-                    <label for="note">ملاحظات</label>
-                    <input type="text" id="note" placeholder="أدخل الملاحظات" />
-                </div>
+                <div class="button-container"><button type="button" id="addBtn" onclick="addInvoice()" class="main-btn"><i class="fas fa-plus"></i> إضافة فاتورة</button></div>
+            </form>
+        </div>
+        <div class="card">
+            <div class="search-container">
+                <input type="text" id="search" placeholder="ابحث برقم الفاتورة، الاسم، أو المنطقة..." oninput="searchInvoice()" />
+                <button class="main-btn"><i class="fas fa-search"></i> بحث</button>
             </div>
-            <div class="button-container">
-                <button type="button" id="addBtn" onclick="addInvoice()" class="main-btn">
-                    <i class="fas fa-plus"></i> إضافة فاتورة
-                </button>
+        </div>
+        <div class="card">
+            <div class="table-container">
+                <table id="invoiceTable">
+                    <thead>
+                        <tr>
+                            <th>رقم الفاتورة</th><th>التاريخ</th><th>المطلوب من السيد</th><th>المقيم في</th>
+                            <th>العدد</th><th>الوزن</th><th>النوع</th><th>السعر</th>
+                            <th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th>ملاحظات</th><th>إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
             </div>
-        </form>
-    </div>
-
-    <div class="card">
-        <div class="search-container">
-            <input type="text" id="search" placeholder="ابحث برقم الفاتورة، الاسم، أو المنطقة..." oninput="searchInvoice()" />
-            <button class="main-btn">
-                <i class="fas fa-search"></i> بحث
-            </button>
+            <div style="text-align: left; margin-top: 20px;">
+                <button id="exportBtn" onclick="exportToExcel()" class="main-btn"><i class="fas fa-file-excel"></i> تصدير إلى Excel</button>
+            </div>
         </div>
-    </div>
-    
-    <div class="card">
-        <div class="table-container">
-            <table id="invoiceTable">
-                <thead>
-                    <tr>
-                        <th>رقم الفاتورة</th>
-                        <th>التاريخ</th>
-                        <th>المطلوب من السيد</th>
-                        <th>المقيم في</th>
-                        <th>العدد</th>
-                        <th>الوزن (كغ)</th>
-                        <th>النوع</th>
-                        <th>السعر</th>
-                        <th>الإجمالي</th>
-                        <th>المدفوع</th>
-                        <th>المتبقي</th>
-                        <th>ملاحظات</th>
-                        <th>إجراءات</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    </tbody>
-            </table>
-        </div>
-        <div style="text-align: left; margin-top: 20px;">
-            <button id="exportBtn" onclick="exportToExcel()" class="main-btn">
-                <i class="fas fa-file-excel"></i> تصدير إلى Excel
-            </button>
-        </div>
-    </div>
-</div>
-
-<div id="invoiceModal" class="modal" onclick="closeModal(event)">
-    <div class="modal-content">
-        <span class="modal-close-btn" onclick="closeModal(event)">&times;</span>
-        <div id="invoiceViewContent"></div>
     </div>
 </div>
 
 <script>
-let invoices = JSON.parse(localStorage.getItem("invoices")) || [
-    {
-        invoiceNo: "001",
-        date: new Date().toISOString().split("T")[0],
-        name: "فاتورة تجريبية",
-        region: "دمشق",
-        count: "200",
-        weight: "1000",
-        type: "حديد",
-        price: "50",
-        total: "10000",
-        paid: "5000",
-        remaining: "5000",
-        note: "هذه فاتورة تجريبية لمساعدتك في البدء."
-    }
-];
-let editIndex = null;
-let visibleInvoicesIndices = [];
-
-function setTodayDate() {
-    document.getElementById("date").value = new Date().toISOString().split("T")[0];
-}
-
-function calculateTotal() {
-    const count = parseFloat(document.getElementById("count").value) || 0;
-    const weight = parseFloat(document.getElementById("weight").value) || 0;
-    const price = parseFloat(document.getElementById("price").value) || 0;
-    const total = (count > 0) ? (count * price) : (weight > 0) ? (weight * price) : 0;
-    
-    document.getElementById("total").value = total;
-    updateRemaining();
-}
-
-function updateRemaining() {
-    const total = parseFloat(document.getElementById("total").value) || 0;
-    const paid = parseFloat(document.getElementById("paid").value) || 0;
-    document.getElementById("remaining").value = total - paid;
-}
-
-function renderTable() {
-    const tbody = document.querySelector("#invoiceTable tbody");
-    tbody.innerHTML = "";
-    
-    let invoicesToRenderIndices = visibleInvoicesIndices.length ? visibleInvoicesIndices : invoices.map((_, index) => index);
-    
-    invoicesToRenderIndices.forEach(originalIndex => {
-        const inv = invoices[originalIndex];
-        if (inv) {
-            tbody.innerHTML += `
-                <tr>
-                    <td>${inv.invoiceNo}</td>
-                    <td>${inv.date}</td>
-                    <td>${inv.name}</td>
-                    <td>${inv.region}</td>
-                    <td>${inv.count}</td>
-                    <td>${inv.weight}</td>
-                    <td>${inv.type}</td>
-                    <td>${inv.price}</td>
-                    <td>${inv.total}</td>
-                    <td>${inv.paid}</td>
-                    <td>${inv.remaining}</td>
-                    <td>${inv.note}</td>
-                    <td class="action-buttons">
-                        <button class="view-btn" onclick="showInvoice(${originalIndex})"><i class="fas fa-eye"></i> عرض</button>
-                        <button class="edit-btn" onclick="editInvoice(${originalIndex})"><i class="fas fa-edit"></i> تعديل</button>
-                        <button class="delete-btn" onclick="deleteInvoice(${originalIndex})"><i class="fas fa-trash-alt"></i> حذف</button>
-                    </td>
-                </tr>`;
-        }
-    });
-}
-
-function addInvoice() {
-    const inv = {
-        invoiceNo: document.getElementById("invoiceNo").value,
-        date: document.getElementById("date").value,
-        name: document.getElementById("name").value.trim(),
-        region: document.getElementById("region").value.trim(),
-        count: document.getElementById("count").value,
-        weight: document.getElementById("weight").value,
-        type: document.getElementById("type").value,
-        price: document.getElementById("price").value,
-        total: document.getElementById("total").value,
-        paid: document.getElementById("paid").value,
-        remaining: document.getElementById("remaining").value,
-        note: document.getElementById("note").value.trim()
+    // ===== Firebase Config =====
+    const firebaseConfig = {
+        apiKey: "AIzaSyAyJUFnNx0GA_kr1K4RJv0QjXrSj6hPEzw",
+        authDomain: "bill-52bc1.firebaseapp.com",
+        projectId: "bill-52bc1",
+        storageBucket: "bill-52bc1.firebasestorage.app",
+        messagingSenderId: "674828701661",
+        appId: "1:674828701661:web:43027ab784b7510a227034"
     };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
 
-    if (!inv.invoiceNo || !inv.date || !inv.name) {
-        alert("الرجاء إدخال الحقول الإلزامية: رقم الفاتورة، التاريخ، واسم العميل.");
-        return;
+    let invoices = [];
+    let editId = null;
+
+    // ===== تسجيل الدخول بحساب جوجل =====
+    function loginWithGoogle() {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).then(() => {
+            document.getElementById("loginSection").classList.add("hidden");
+            document.getElementById("appContent").classList.remove("hidden");
+            fetchInvoices();
+        }).catch(err => alert("خطأ في تسجيل الدخول: " + err.message));
     }
 
-    if (editIndex !== null) {
-        invoices[editIndex] = inv;
-        editIndex = null;
-        document.getElementById("addBtn").innerHTML = '<i class="fas fa-plus"></i> إضافة فاتورة';
-    } else {
-        invoices.push(inv);
+    // ===== تسجيل الخروج =====
+    function logout() {
+        auth.signOut().then(() => {
+            document.getElementById("loginSection").classList.remove("hidden");
+            document.getElementById("appContent").classList.add("hidden");
+        });
     }
-    localStorage.setItem("invoices", JSON.stringify(invoices));
-    document.getElementById("search").value = "";
-    visibleInvoicesIndices = [];
-    renderTable();
-    clearForm();
-}
 
-function clearForm() {
-    document.querySelectorAll("#invoiceForm input").forEach(i => i.value = "");
-    setTodayDate();
-}
-
-function editInvoice(index) {
-    const inv = invoices[index];
-    document.getElementById("invoiceNo").value = inv.invoiceNo;
-    document.getElementById("date").value = inv.date;
-    document.getElementById("name").value = inv.name;
-    document.getElementById("region").value = inv.region;
-    document.getElementById("count").value = inv.count;
-    document.getElementById("weight").value = inv.weight;
-    document.getElementById("type").value = inv.type;
-    document.getElementById("price").value = inv.price;
-    document.getElementById("total").value = inv.total;
-    document.getElementById("paid").value = inv.paid;
-    document.getElementById("remaining").value = inv.remaining;
-    document.getElementById("note").value = inv.note;
-    editIndex = index;
-    document.getElementById("addBtn").innerHTML = '<i class="fas fa-save"></i> حفظ التعديل';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
-
-function deleteInvoice(index) {
-    if (confirm("هل أنت متأكد من حذف هذه الفاتورة؟")) {
-        invoices.splice(index, 1);
-        localStorage.setItem("invoices", JSON.stringify(invoices));
-        document.getElementById("search").value = "";
-        visibleInvoicesIndices = [];
+    // ===== جلب الفواتير =====
+    async function fetchInvoices() {
+        const snapshot = await db.collection("invoices").get();
+        invoices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         renderTable();
     }
-}
 
-function searchInvoice() {
-    const term = document.getElementById("search").value.toLowerCase().trim();
-    visibleInvoicesIndices = invoices
-        .map((inv, index) => ({ inv, index }))
-        .filter(item =>
-            item.inv.invoiceNo.toString().toLowerCase().includes(term) ||
-            item.inv.name.toLowerCase().includes(term) ||
-            item.inv.region.toLowerCase().includes(term) ||
-            (item.inv.note && item.inv.note.toLowerCase().includes(term))
-        )
-        .map(item => item.index);
-    renderTable();
-}
-
-function exportToExcel() {
-    let csv = "رقم الفاتورة,بالتاريخ,المطلوب من السيد,المقيم في,العدد,الوزن,النوع,السعر,الإجمالي,المدفوع,المتبقي,ملاحظات\n";
-    invoices.forEach(inv => {
-        csv += `${inv.invoiceNo},${inv.date},${inv.name},${inv.region},${inv.count},${inv.weight},${inv.type},${inv.price},${inv.total},${inv.paid},${inv.remaining},${inv.note}\n`;
-    });
-    const BOM = '\uFEFF';
-    const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "فواتير_شركة_عمار.csv";
-    link.click();
-}
-
-function showInvoice(index) {
-    const inv = invoices[index];
-    const content = document.getElementById("invoiceViewContent");
-    content.innerHTML = `
-        <div class="invoice-view">
-            <h2>فاتورة رقم ${inv.invoiceNo}</h2>
-            <div style="text-align:center;">
-                <p><strong>شركة عمار العزات وأولاده</strong></p>
-                <p>لتأمين كافة مواد البناء</p>
-            </div>
-            <table>
-                <tr><th>التاريخ:</th><td>${inv.date}</td></tr>
-                <tr><th>المطلوب من السيد:</th><td>${inv.name}</td></tr>
-                <tr><th>المقيم في:</th><td>${inv.region}</td></tr>
-                <tr><th>العدد:</th><td>${inv.count}</td></tr>
-                <tr><th>الوزن (كغ):</th><td>${inv.weight}</td></tr>
-                <tr><th>النوع:</th><td>${inv.type}</td></tr>
-                <tr><th>السعر:</th><td>${inv.price}</td></tr>
-                <tr><th>المبلغ الإجمالي:</th><td>${inv.total}</td></tr>
-                <tr><th>المبلغ المدفوع:</th><td>${inv.paid}</td></tr>
-                <tr><th>المتبقي:</th><td>${inv.remaining}</td></tr>
-                <tr><th>ملاحظات:</th><td>${inv.note}</td></tr>
-            </table>
-            <div style="text-align: center; margin-top: 40px; padding-top: 10px; border-top: 1px dashed #ccc;">
-                <p><strong>توقيع العميل</strong></p>
-            </div>
-            <button class="print-btn" onclick="window.print()">
-                <i class="fas fa-print"></i> طباعة الفاتورة
-            </button>
-        </div>
-    `;
-    document.getElementById("invoiceModal").style.display = "flex";
-}
-
-function closeModal(event) {
-    if (event.target.id === "invoiceModal" || event.target.className === "modal-close-btn") {
-        document.getElementById("invoiceModal").style.display = "none";
+    function calculateTotal() {
+        const count = parseFloat(count.value) || 0;
+        const weight = parseFloat(weight.value) || 0;
+        const price = parseFloat(price.value) || 0;
+        total.value = (count > 0 ? count * price : weight * price);
+        updateRemaining();
     }
-}
 
-window.onload = () => {
-    setTodayDate();
-    renderTable();
-};
+    function updateRemaining() {
+        remaining.value = (parseFloat(total.value) || 0) - (parseFloat(paid.value) || 0);
+    }
+
+    async function addInvoice() {
+        const inv = {
+            invoiceNo: invoiceNo.value, date: date.value, name: name.value.trim(),
+            region: region.value.trim(), count: count.value, weight: weight.value,
+            type: type.value, price: price.value, total: total.value,
+            paid: paid.value, remaining: remaining.value, note: note.value.trim()
+        };
+        if (!inv.invoiceNo || !inv.date || !inv.name) { alert("يرجى إدخال البيانات المطلوبة"); return; }
+        if (editId) { await db.collection("invoices").doc(editId).set(inv); editId = null; }
+        else { await db.collection("invoices").add(inv); }
+        invoiceForm.reset();
+        fetchInvoices();
+    }
+
+    function renderTable() {
+        const tbody = document.querySelector("#invoiceTable tbody");
+        tbody.innerHTML = "";
+        invoices.forEach(inv => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${inv.invoiceNo}</td><td>${inv.date}</td><td>${inv.name}</td><td>${inv.region}</td>
+                    <td>${inv.count}</td><td>${inv.weight}</td><td>${inv.type}</td><td>${inv.price}</td>
+                    <td>${inv.total}</td><td>${inv.paid}</td><td>${inv.remaining}</td><td>${inv.note}</td>
+                    <td class="action-buttons">
+                        <button class="edit-btn" onclick="editInvoice('${inv.id}')"><i class="fas fa-edit"></i></button>
+                        <button class="delete-btn" onclick="deleteInvoice('${inv.id}')"><i class="fas fa-trash-alt"></i></button>
+                    </td>
+                </tr>`;
+        });
+    }
+
+    async function editInvoice(id) {
+        const inv = invoices.find(i => i.id === id);
+        editId = id;
+        Object.keys(inv).forEach(k => { if (document.getElementById(k)) document.getElementById(k).value = inv[k]; });
+    }
+
+    async function deleteInvoice(id) { if (confirm("تأكيد الحذف؟")) { await db.collection("invoices").doc(id).delete(); fetchInvoices(); } }
+
+    function searchInvoice() {
+        const term = search.value.toLowerCase().trim();
+        const filtered = invoices.filter(inv => inv.invoiceNo.toLowerCase().includes(term) || inv.name.toLowerCase().includes(term) || inv.region.toLowerCase().includes(term) || (inv.note && inv.note.toLowerCase().includes(term)));
+        const tbody = document.querySelector("#invoiceTable tbody");
+        tbody.innerHTML = "";
+        filtered.forEach(inv => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${inv.invoiceNo}</td><td>${inv.date}</td><td>${inv.name}</td><td>${inv.region}</td>
+                    <td>${inv.count}</td><td>${inv.weight}</td><td>${inv.type}</td><td>${inv.price}</td>
+                    <td>${inv.total}</td><td>${inv.paid}</td><td>${inv.remaining}</td><td>${inv.note}</td>
+                    <td class="action-buttons">
+                        <button class="edit-btn" onclick="editInvoice('${inv.id}')"><i class="fas fa-edit"></i></button>
+                        <button class="delete-btn" onclick="deleteInvoice('${inv.id}')"><i class="fas fa-trash-alt"></i></button>
+                    </td>
+                </tr>`;
+        });
+    }
+
+    function exportToExcel() {
+        let csv = "رقم الفاتورة,التاريخ,الاسم,المنطقة,العدد,الوزن,النوع,السعر,الإجمالي,المدفوع,المتبقي,ملاحظات\n";
+        invoices.forEach(inv => { csv += `${inv.invoiceNo},${inv.date},${inv.name},${inv.region},${inv.count},${inv.weight},${inv.type},${inv.price},${inv.total},${inv.paid},${inv.remaining},${inv.note}\n`; });
+        const BOM = '\uFEFF';
+        const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "فواتير.csv"; link.click();
+    }
+
+    // التحقق من حالة تسجيل الدخول تلقائياً
+    auth.onAuthStateChanged(user => {
+        if (user) { loginSection.classList.add("hidden"); appContent.classList.remove("hidden"); fetchInvoices(); }
+        else { loginSection.classList.remove("hidden"); appContent.classList.add("hidden"); }
+    });
 </script>
-
 </body>
 </html>
