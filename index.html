@@ -3,9 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>نظام فواتير - تسجيل دخول</title>
+<title>نظام فواتير</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
 <style>
@@ -19,10 +18,13 @@ button { padding: 10px 20px; background: var(--primary-color); color: white; bor
 button:hover { background: #20615f; }
 .hidden { display: none; }
 .logout-btn { float:left; background:#e53935; color:white; padding:8px 12px; border:none; border-radius:6px; cursor:pointer;}
+table { width: 100%; border-collapse: collapse; margin-top: 15px;}
+th, td { border: 1px solid #ccc; padding: 8px; text-align: center;}
 </style>
 </head>
 <body>
 <div class="container">
+
     <!-- شاشة تسجيل الدخول -->
     <div class="card" id="loginSection">
         <h2>تسجيل الدخول</h2>
@@ -35,33 +37,34 @@ button:hover { background: #20615f; }
     <div id="appContent" class="hidden">
         <button class="logout-btn" onclick="logout()">تسجيل الخروج</button>
         <h2>نظام الفواتير</h2>
-        <!-- هنا سنضع نموذج الفواتير -->
+
+        <!-- نموذج إضافة فاتورة -->
         <div class="card">
             <form id="invoiceForm">
-                <div class="form-grid">
-                    <input type="text" id="invoiceNo" placeholder="رقم الفاتورة" required />
-                    <input type="date" id="date" required />
-                    <input type="text" id="name" placeholder="اسم العميل" required />
-                    <input type="text" id="region" placeholder="المنطقة" required />
-                    <input type="number" id="count" placeholder="العدد" oninput="calculateTotal()" />
-                    <input type="number" id="weight" placeholder="الوزن" oninput="calculateTotal()" />
-                    <input type="text" id="type" placeholder="النوع" />
-                    <input type="number" id="price" placeholder="السعر" oninput="calculateTotal()" />
-                    <input type="number" id="total" placeholder="الإجمالي" readonly />
-                    <input type="number" id="paid" placeholder="المدفوع" oninput="updateRemaining()" />
-                    <input type="number" id="remaining" placeholder="المتبقي" readonly />
-                    <input type="text" id="note" placeholder="ملاحظات" />
-                </div>
+                <input type="text" id="invoiceNo" placeholder="رقم الفاتورة" required />
+                <input type="date" id="date" required />
+                <input type="text" id="name" placeholder="اسم العميل" required />
+                <input type="text" id="region" placeholder="المنطقة" required />
+                <input type="number" id="count" placeholder="العدد" oninput="calculateTotal()" />
+                <input type="number" id="weight" placeholder="الوزن" oninput="calculateTotal()" />
+                <input type="text" id="type" placeholder="النوع" />
+                <input type="number" id="price" placeholder="السعر" oninput="calculateTotal()" />
+                <input type="number" id="total" placeholder="الإجمالي" readonly />
+                <input type="number" id="paid" placeholder="المدفوع" oninput="updateRemaining()" />
+                <input type="number" id="remaining" placeholder="المتبقي" readonly />
+                <input type="text" id="note" placeholder="ملاحظات" />
                 <button type="button" onclick="addInvoice()">إضافة فاتورة</button>
             </form>
         </div>
+
+        <!-- جدول الفواتير -->
         <div class="card">
-            <table id="invoiceTable" border="1" width="100%">
+            <table id="invoiceTable">
                 <thead>
                     <tr>
                         <th>رقم الفاتورة</th><th>التاريخ</th><th>الاسم</th><th>المنطقة</th>
                         <th>العدد</th><th>الوزن</th><th>النوع</th><th>السعر</th>
-                        <th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th>ملاحظات</th><th>إجراءات</th>
+                        <th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th>ملاحظات</th><th>حذف</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
@@ -83,15 +86,16 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
-/* ===== تسجيل الدخول المحلي ===== */
+/* ===== نظام تسجيل الدخول المحلي ===== */
 const validUsers = [
-    { username: "admin", password: "admin", token: "admin-token" }
+    { username: "admin", password: "12345", token: "admin-token" }
 ];
 
 function localLogin() {
-    const u = document.getElementById("username").value;
-    const p = document.getElementById("password").value;
+    const u = document.getElementById("username").value.trim();
+    const p = document.getElementById("password").value.trim();
     const user = validUsers.find(x => x.username === u && x.password === p);
+
     if (user) {
         localStorage.setItem("authToken", user.token);
         document.getElementById("loginSection").classList.add("hidden");
@@ -102,14 +106,12 @@ function localLogin() {
     }
 }
 
-/* ===== تسجيل الخروج ===== */
 function logout() {
     localStorage.removeItem("authToken");
     document.getElementById("loginSection").classList.remove("hidden");
     document.getElementById("appContent").classList.add("hidden");
 }
 
-/* ===== التحقق عند تحميل الصفحة ===== */
 window.onload = () => {
     if (localStorage.getItem("authToken")) {
         document.getElementById("loginSection").classList.add("hidden");
@@ -118,7 +120,7 @@ window.onload = () => {
     }
 };
 
-/* ===== إدارة الفواتير مع Firestore ===== */
+/* ===== إدارة الفواتير ===== */
 let invoices = [];
 
 async function fetchInvoices() {
@@ -128,25 +130,40 @@ async function fetchInvoices() {
 }
 
 function calculateTotal() {
-    const count = parseFloat(countInput.value) || 0;
-    const weight = parseFloat(weightInput.value) || 0;
-    const price = parseFloat(priceInput.value) || 0;
-    totalInput.value = (count > 0 ? count * price : weight * price);
+    const count = parseFloat(document.getElementById("count").value) || 0;
+    const weight = parseFloat(document.getElementById("weight").value) || 0;
+    const price = parseFloat(document.getElementById("price").value) || 0;
+    document.getElementById("total").value = (count > 0 ? count * price : weight * price);
     updateRemaining();
 }
 
 function updateRemaining() {
-    remainingInput.value = (parseFloat(totalInput.value) || 0) - (parseFloat(paidInput.value) || 0);
+    const total = parseFloat(document.getElementById("total").value) || 0;
+    const paid = parseFloat(document.getElementById("paid").value) || 0;
+    document.getElementById("remaining").value = total - paid;
 }
 
 async function addInvoice() {
     const inv = {
-        invoiceNo: invoiceNo.value, date: date.value, name: name.value.trim(),
-        region: region.value.trim(), count: countInput.value, weight: weightInput.value,
-        type: type.value, price: priceInput.value, total: totalInput.value,
-        paid: paidInput.value, remaining: remainingInput.value, note: note.value.trim()
+        invoiceNo: document.getElementById("invoiceNo").value,
+        date: document.getElementById("date").value,
+        name: document.getElementById("name").value.trim(),
+        region: document.getElementById("region").value.trim(),
+        count: document.getElementById("count").value,
+        weight: document.getElementById("weight").value,
+        type: document.getElementById("type").value,
+        price: document.getElementById("price").value,
+        total: document.getElementById("total").value,
+        paid: document.getElementById("paid").value,
+        remaining: document.getElementById("remaining").value,
+        note: document.getElementById("note").value.trim()
     };
-    if (!inv.invoiceNo || !inv.date || !inv.name) { alert("يرجى إدخال البيانات المطلوبة"); return; }
+
+    if (!inv.invoiceNo || !inv.date || !inv.name) {
+        alert("يرجى إدخال البيانات المطلوبة");
+        return;
+    }
+
     await db.collection("invoices").add(inv);
     fetchInvoices();
 }
@@ -171,20 +188,6 @@ async function deleteInvoice(id) {
         fetchInvoices();
     }
 }
-
-/* تسهيل الوصول لعناصر النموذج */
-const invoiceNo = document.getElementById("invoiceNo");
-const date = document.getElementById("date");
-const name = document.getElementById("name");
-const region = document.getElementById("region");
-const countInput = document.getElementById("count");
-const weightInput = document.getElementById("weight");
-const type = document.getElementById("type");
-const priceInput = document.getElementById("price");
-const totalInput = document.getElementById("total");
-const paidInput = document.getElementById("paid");
-const remainingInput = document.getElementById("remaining");
-const note = document.getElementById("note");
 </script>
 </body>
 </html>
