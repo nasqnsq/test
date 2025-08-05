@@ -3,220 +3,188 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>نظام فواتير شركة عمار العزات وأولاده</title>
+<title>نظام فواتير - تسجيل دخول</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js"></script>
 <style>
-/* ====== التصميم ====== */
-:root {
-    --primary-color: #2b7a78;
-    --secondary-color: #3aa6a4;
-    --accent-color: #8ed3cf;
-    --background-color: #f6f8f8;
-    --text-color: #333;
-    --card-bg: #fff;
-    --border-color: #e0e0e0;
-    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-body { font-family: 'Cairo', sans-serif; background-color: var(--background-color); margin: 0; padding: 20px; direction: rtl; color: var(--text-color);}
-.container { max-width: 1300px; margin: 0 auto; display: flex; flex-direction: column; gap: 25px;}
-.header { text-align: center; background-color: var(--primary-color); color: #fff; padding: 25px; border-radius: 12px; box-shadow: var(--shadow);}
-.header h1 { margin: 0; font-size: 2.2rem; font-weight: 700;}
-.card { background-color: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: var(--shadow);}
-button.google-btn {
-    background-color: #db4437; color: #fff; border: none; padding: 12px 20px;
-    border-radius: 8px; font-size: 1rem; cursor: pointer; margin-bottom: 20px;
-}
+:root { --primary-color: #2b7a78; --secondary-color: #3aa6a4; --background-color: #f6f8f8; --text-color: #333; --card-bg: #fff; }
+body { font-family: 'Cairo', sans-serif; background-color: var(--background-color); margin: 0; padding: 20px; direction: rtl; }
+.container { max-width: 1200px; margin: auto; }
+.card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-top: 20px;}
+h2 { text-align: center; margin-bottom: 20px;}
+input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; }
+button { padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;}
+button:hover { background: #20615f; }
 .hidden { display: none; }
-/* باقي التنسيقات كما في النسخ السابقة */
+.logout-btn { float:left; background:#e53935; color:white; padding:8px 12px; border:none; border-radius:6px; cursor:pointer;}
 </style>
 </head>
 <body>
 <div class="container">
-    <div class="header"><h1>نظام فواتير شركة عمار العزات وأولاده</h1></div>
-
-    <!-- زر تسجيل الدخول -->
-    <div id="loginSection" class="card">
+    <!-- شاشة تسجيل الدخول -->
+    <div class="card" id="loginSection">
         <h2>تسجيل الدخول</h2>
-        <button class="google-btn" onclick="loginWithGoogle()"><i class="fab fa-google"></i> تسجيل الدخول بحساب Google</button>
+        <input type="text" id="username" placeholder="اسم المستخدم" />
+        <input type="password" id="password" placeholder="كلمة المرور" />
+        <button onclick="localLogin()">دخول</button>
     </div>
 
-    <!-- محتوى النظام -->
+    <!-- محتوى التطبيق -->
     <div id="appContent" class="hidden">
-        <button onclick="logout()" style="float:left; background:#e53935; color:white; padding:8px 12px; border:none; border-radius:6px; cursor:pointer;">تسجيل الخروج</button>
+        <button class="logout-btn" onclick="logout()">تسجيل الخروج</button>
+        <h2>نظام الفواتير</h2>
+        <!-- هنا سنضع نموذج الفواتير -->
         <div class="card">
             <form id="invoiceForm">
                 <div class="form-grid">
-                    <div class="form-group"><label>رقم الفاتورة</label><input type="text" id="invoiceNo" required /></div>
-                    <div class="form-group"><label>بالتاريخ</label><input type="date" id="date" required /></div>
-                    <div class="form-group"><label>المطلوب من السيد</label><input type="text" id="name" required /></div>
-                    <div class="form-group"><label>المقيم في</label><input type="text" id="region" required /></div>
-                    <div class="form-group"><label>العدد</label><input type="number" id="count" oninput="calculateTotal()" /></div>
-                    <div class="form-group"><label>الوزن (كغ)</label><input type="number" id="weight" oninput="calculateTotal()" /></div>
-                    <div class="form-group"><label>النوع</label><input type="text" id="type" /></div>
-                    <div class="form-group"><label>السعر</label><input type="number" id="price" oninput="calculateTotal()" /></div>
-                    <div class="form-group"><label>المبلغ الإجمالي</label><input type="number" id="total" readonly /></div>
-                    <div class="form-group"><label>المبلغ المدفوع</label><input type="number" id="paid" oninput="updateRemaining()" /></div>
-                    <div class="form-group"><label>المتبقي</label><input type="number" id="remaining" readonly /></div>
-                    <div class="form-group full-width"><label>ملاحظات</label><input type="text" id="note" /></div>
+                    <input type="text" id="invoiceNo" placeholder="رقم الفاتورة" required />
+                    <input type="date" id="date" required />
+                    <input type="text" id="name" placeholder="اسم العميل" required />
+                    <input type="text" id="region" placeholder="المنطقة" required />
+                    <input type="number" id="count" placeholder="العدد" oninput="calculateTotal()" />
+                    <input type="number" id="weight" placeholder="الوزن" oninput="calculateTotal()" />
+                    <input type="text" id="type" placeholder="النوع" />
+                    <input type="number" id="price" placeholder="السعر" oninput="calculateTotal()" />
+                    <input type="number" id="total" placeholder="الإجمالي" readonly />
+                    <input type="number" id="paid" placeholder="المدفوع" oninput="updateRemaining()" />
+                    <input type="number" id="remaining" placeholder="المتبقي" readonly />
+                    <input type="text" id="note" placeholder="ملاحظات" />
                 </div>
-                <div class="button-container"><button type="button" id="addBtn" onclick="addInvoice()" class="main-btn"><i class="fas fa-plus"></i> إضافة فاتورة</button></div>
+                <button type="button" onclick="addInvoice()">إضافة فاتورة</button>
             </form>
         </div>
         <div class="card">
-            <div class="search-container">
-                <input type="text" id="search" placeholder="ابحث برقم الفاتورة، الاسم، أو المنطقة..." oninput="searchInvoice()" />
-                <button class="main-btn"><i class="fas fa-search"></i> بحث</button>
-            </div>
-        </div>
-        <div class="card">
-            <div class="table-container">
-                <table id="invoiceTable">
-                    <thead>
-                        <tr>
-                            <th>رقم الفاتورة</th><th>التاريخ</th><th>المطلوب من السيد</th><th>المقيم في</th>
-                            <th>العدد</th><th>الوزن</th><th>النوع</th><th>السعر</th>
-                            <th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th>ملاحظات</th><th>إجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            </div>
-            <div style="text-align: left; margin-top: 20px;">
-                <button id="exportBtn" onclick="exportToExcel()" class="main-btn"><i class="fas fa-file-excel"></i> تصدير إلى Excel</button>
-            </div>
+            <table id="invoiceTable" border="1" width="100%">
+                <thead>
+                    <tr>
+                        <th>رقم الفاتورة</th><th>التاريخ</th><th>الاسم</th><th>المنطقة</th>
+                        <th>العدد</th><th>الوزن</th><th>النوع</th><th>السعر</th>
+                        <th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th>ملاحظات</th><th>إجراءات</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
         </div>
     </div>
 </div>
 
 <script>
-    // ===== Firebase Config =====
-    const firebaseConfig = {
-        apiKey: "AIzaSyAyJUFnNx0GA_kr1K4RJv0QjXrSj6hPEzw",
-        authDomain: "bill-52bc1.firebaseapp.com",
-        projectId: "bill-52bc1",
-        storageBucket: "bill-52bc1.firebasestorage.app",
-        messagingSenderId: "674828701661",
-        appId: "1:674828701661:web:43027ab784b7510a227034"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
+/* ===== إعداد Firebase ===== */
+const firebaseConfig = {
+    apiKey: "AIzaSyAyJUFnNx0GA_kr1K4RJv0QjXrSj6hPEzw",
+    authDomain: "bill-52bc1.firebaseapp.com",
+    projectId: "bill-52bc1",
+    storageBucket: "bill-52bc1.firebasestorage.app",
+    messagingSenderId: "674828701661",
+    appId: "1:674828701661:web:43027ab784b7510a227034"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-    let invoices = [];
-    let editId = null;
+/* ===== تسجيل الدخول المحلي ===== */
+const validUsers = [
+    { username: "admin", password: "admin", token: "admin-token" }
+];
 
-    // ===== تسجيل الدخول بحساب جوجل =====
-    function loginWithGoogle() {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider).then(() => {
-            document.getElementById("loginSection").classList.add("hidden");
-            document.getElementById("appContent").classList.remove("hidden");
-            fetchInvoices();
-        }).catch(err => alert("خطأ في تسجيل الدخول: " + err.message));
+function localLogin() {
+    const u = document.getElementById("username").value;
+    const p = document.getElementById("password").value;
+    const user = validUsers.find(x => x.username === u && x.password === p);
+    if (user) {
+        localStorage.setItem("authToken", user.token);
+        document.getElementById("loginSection").classList.add("hidden");
+        document.getElementById("appContent").classList.remove("hidden");
+        fetchInvoices();
+    } else {
+        alert("اسم المستخدم أو كلمة المرور غير صحيحة");
     }
+}
 
-    // ===== تسجيل الخروج =====
-    function logout() {
-        auth.signOut().then(() => {
-            document.getElementById("loginSection").classList.remove("hidden");
-            document.getElementById("appContent").classList.add("hidden");
-        });
-    }
+/* ===== تسجيل الخروج ===== */
+function logout() {
+    localStorage.removeItem("authToken");
+    document.getElementById("loginSection").classList.remove("hidden");
+    document.getElementById("appContent").classList.add("hidden");
+}
 
-    // ===== جلب الفواتير =====
-    async function fetchInvoices() {
-        const snapshot = await db.collection("invoices").get();
-        invoices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        renderTable();
-    }
-
-    function calculateTotal() {
-        const count = parseFloat(count.value) || 0;
-        const weight = parseFloat(weight.value) || 0;
-        const price = parseFloat(price.value) || 0;
-        total.value = (count > 0 ? count * price : weight * price);
-        updateRemaining();
-    }
-
-    function updateRemaining() {
-        remaining.value = (parseFloat(total.value) || 0) - (parseFloat(paid.value) || 0);
-    }
-
-    async function addInvoice() {
-        const inv = {
-            invoiceNo: invoiceNo.value, date: date.value, name: name.value.trim(),
-            region: region.value.trim(), count: count.value, weight: weight.value,
-            type: type.value, price: price.value, total: total.value,
-            paid: paid.value, remaining: remaining.value, note: note.value.trim()
-        };
-        if (!inv.invoiceNo || !inv.date || !inv.name) { alert("يرجى إدخال البيانات المطلوبة"); return; }
-        if (editId) { await db.collection("invoices").doc(editId).set(inv); editId = null; }
-        else { await db.collection("invoices").add(inv); }
-        invoiceForm.reset();
+/* ===== التحقق عند تحميل الصفحة ===== */
+window.onload = () => {
+    if (localStorage.getItem("authToken")) {
+        document.getElementById("loginSection").classList.add("hidden");
+        document.getElementById("appContent").classList.remove("hidden");
         fetchInvoices();
     }
+};
 
-    function renderTable() {
-        const tbody = document.querySelector("#invoiceTable tbody");
-        tbody.innerHTML = "";
-        invoices.forEach(inv => {
-            tbody.innerHTML += `
-                <tr>
-                    <td>${inv.invoiceNo}</td><td>${inv.date}</td><td>${inv.name}</td><td>${inv.region}</td>
-                    <td>${inv.count}</td><td>${inv.weight}</td><td>${inv.type}</td><td>${inv.price}</td>
-                    <td>${inv.total}</td><td>${inv.paid}</td><td>${inv.remaining}</td><td>${inv.note}</td>
-                    <td class="action-buttons">
-                        <button class="edit-btn" onclick="editInvoice('${inv.id}')"><i class="fas fa-edit"></i></button>
-                        <button class="delete-btn" onclick="deleteInvoice('${inv.id}')"><i class="fas fa-trash-alt"></i></button>
-                    </td>
-                </tr>`;
-        });
-    }
+/* ===== إدارة الفواتير مع Firestore ===== */
+let invoices = [];
 
-    async function editInvoice(id) {
-        const inv = invoices.find(i => i.id === id);
-        editId = id;
-        Object.keys(inv).forEach(k => { if (document.getElementById(k)) document.getElementById(k).value = inv[k]; });
-    }
+async function fetchInvoices() {
+    const snapshot = await db.collection("invoices").get();
+    invoices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderTable();
+}
 
-    async function deleteInvoice(id) { if (confirm("تأكيد الحذف؟")) { await db.collection("invoices").doc(id).delete(); fetchInvoices(); } }
+function calculateTotal() {
+    const count = parseFloat(countInput.value) || 0;
+    const weight = parseFloat(weightInput.value) || 0;
+    const price = parseFloat(priceInput.value) || 0;
+    totalInput.value = (count > 0 ? count * price : weight * price);
+    updateRemaining();
+}
 
-    function searchInvoice() {
-        const term = search.value.toLowerCase().trim();
-        const filtered = invoices.filter(inv => inv.invoiceNo.toLowerCase().includes(term) || inv.name.toLowerCase().includes(term) || inv.region.toLowerCase().includes(term) || (inv.note && inv.note.toLowerCase().includes(term)));
-        const tbody = document.querySelector("#invoiceTable tbody");
-        tbody.innerHTML = "";
-        filtered.forEach(inv => {
-            tbody.innerHTML += `
-                <tr>
-                    <td>${inv.invoiceNo}</td><td>${inv.date}</td><td>${inv.name}</td><td>${inv.region}</td>
-                    <td>${inv.count}</td><td>${inv.weight}</td><td>${inv.type}</td><td>${inv.price}</td>
-                    <td>${inv.total}</td><td>${inv.paid}</td><td>${inv.remaining}</td><td>${inv.note}</td>
-                    <td class="action-buttons">
-                        <button class="edit-btn" onclick="editInvoice('${inv.id}')"><i class="fas fa-edit"></i></button>
-                        <button class="delete-btn" onclick="deleteInvoice('${inv.id}')"><i class="fas fa-trash-alt"></i></button>
-                    </td>
-                </tr>`;
-        });
-    }
+function updateRemaining() {
+    remainingInput.value = (parseFloat(totalInput.value) || 0) - (parseFloat(paidInput.value) || 0);
+}
 
-    function exportToExcel() {
-        let csv = "رقم الفاتورة,التاريخ,الاسم,المنطقة,العدد,الوزن,النوع,السعر,الإجمالي,المدفوع,المتبقي,ملاحظات\n";
-        invoices.forEach(inv => { csv += `${inv.invoiceNo},${inv.date},${inv.name},${inv.region},${inv.count},${inv.weight},${inv.type},${inv.price},${inv.total},${inv.paid},${inv.remaining},${inv.note}\n`; });
-        const BOM = '\uFEFF';
-        const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "فواتير.csv"; link.click();
-    }
+async function addInvoice() {
+    const inv = {
+        invoiceNo: invoiceNo.value, date: date.value, name: name.value.trim(),
+        region: region.value.trim(), count: countInput.value, weight: weightInput.value,
+        type: type.value, price: priceInput.value, total: totalInput.value,
+        paid: paidInput.value, remaining: remainingInput.value, note: note.value.trim()
+    };
+    if (!inv.invoiceNo || !inv.date || !inv.name) { alert("يرجى إدخال البيانات المطلوبة"); return; }
+    await db.collection("invoices").add(inv);
+    fetchInvoices();
+}
 
-    // التحقق من حالة تسجيل الدخول تلقائياً
-    auth.onAuthStateChanged(user => {
-        if (user) { loginSection.classList.add("hidden"); appContent.classList.remove("hidden"); fetchInvoices(); }
-        else { loginSection.classList.remove("hidden"); appContent.classList.add("hidden"); }
+function renderTable() {
+    const tbody = document.querySelector("#invoiceTable tbody");
+    tbody.innerHTML = "";
+    invoices.forEach(inv => {
+        tbody.innerHTML += `
+            <tr>
+                <td>${inv.invoiceNo}</td><td>${inv.date}</td><td>${inv.name}</td><td>${inv.region}</td>
+                <td>${inv.count}</td><td>${inv.weight}</td><td>${inv.type}</td><td>${inv.price}</td>
+                <td>${inv.total}</td><td>${inv.paid}</td><td>${inv.remaining}</td><td>${inv.note}</td>
+                <td><button onclick="deleteInvoice('${inv.id}')">حذف</button></td>
+            </tr>`;
     });
+}
+
+async function deleteInvoice(id) {
+    if (confirm("هل أنت متأكد من الحذف؟")) {
+        await db.collection("invoices").doc(id).delete();
+        fetchInvoices();
+    }
+}
+
+/* تسهيل الوصول لعناصر النموذج */
+const invoiceNo = document.getElementById("invoiceNo");
+const date = document.getElementById("date");
+const name = document.getElementById("name");
+const region = document.getElementById("region");
+const countInput = document.getElementById("count");
+const weightInput = document.getElementById("weight");
+const type = document.getElementById("type");
+const priceInput = document.getElementById("price");
+const totalInput = document.getElementById("total");
+const paidInput = document.getElementById("paid");
+const remainingInput = document.getElementById("remaining");
+const note = document.getElementById("note");
 </script>
 </body>
 </html>
