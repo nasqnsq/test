@@ -3,78 +3,113 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>نظام فواتير</title>
+<title>نظام فواتير شركة عمار العزات وأولاده</title>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 <style>
-:root { --primary-color: #2b7a78; --secondary-color: #3aa6a4; --background-color: #f6f8f8; --text-color: #333; --card-bg: #fff; }
-body { font-family: 'Cairo', sans-serif; background-color: var(--background-color); margin: 0; padding: 20px; direction: rtl; }
-.container { max-width: 1200px; margin: auto; }
-.card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-top: 20px;}
-h2 { text-align: center; margin-bottom: 20px;}
-input { width: 100%; padding: 10px; margin-bottom: 15px; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; }
-button { padding: 10px 20px; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;}
-button:hover { background: #20615f; }
-.hidden { display: none; }
-.logout-btn { float:left; background:#e53935; color:white; padding:8px 12px; border:none; border-radius:6px; cursor:pointer;}
-table { width: 100%; border-collapse: collapse; margin-top: 15px;}
-th, td { border: 1px solid #ccc; padding: 8px; text-align: center;}
+:root {
+    --primary-color: #2b7a78;
+    --secondary-color: #3aa6a4;
+    --accent-color: #8ed3cf;
+    --background-color: #f6f8f8;
+    --text-color: #333;
+    --card-bg: #fff;
+    --border-color: #e0e0e0;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+body { font-family: 'Cairo', sans-serif; background-color: var(--background-color); margin: 0; padding: 20px; direction: rtl; color: var(--text-color); }
+.container { max-width: 1300px; margin: 0 auto; display: flex; flex-direction: column; gap: 25px; }
+.header { text-align: center; background-color: var(--primary-color); color: #fff; padding: 25px; border-radius: 12px; box-shadow: var(--shadow); }
+.header h1 { margin: 0; font-size: 2.2rem; font-weight: 700; }
+.card { background-color: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: var(--shadow); }
+.form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+.form-group { display: flex; flex-direction: column; }
+.form-group label { font-size: 14px; font-weight: 600; color: #555; margin-bottom: 8px; }
+.form-group input { width: 100%; padding: 12px 15px; border: 1px solid var(--border-color); border-radius: 8px; font-family: 'Cairo', sans-serif; font-size: 1rem; transition: border-color 0.3s; }
+.form-group input:focus { outline: none; border-color: var(--primary-color); }
+.full-width { grid-column: 1 / -1; }
+.button-container { display: flex; justify-content: flex-end; gap: 15px; margin-top: 20px; }
+.main-btn { padding: 12px 25px; font-size: 1rem; font-weight: 700; color: #fff; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.3s; }
+#addBtn { background-color: var(--primary-color); }
+#addBtn:hover { background-color: #20615f; }
+#exportBtn { background-color: var(--secondary-color); }
+#exportBtn:hover { background-color: #318a88; }
+.search-container { display: flex; gap: 10px; align-items: center; }
+.search-container input { flex-grow: 1; }
+.table-container { overflow-x: auto; }
+table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); }
+table thead tr { background-color: var(--primary-color); color: #fff; }
+table th, table td { padding: 15px 12px; text-align: center; border: 1px solid var(--border-color); }
+table tbody tr:nth-child(even) td { background-color: #f9f9f9; }
+.action-buttons { display: flex; justify-content: center; gap: 8px; }
+.action-buttons button { border: none; border-radius: 6px; padding: 8px 12px; cursor: pointer; }
+.view-btn { background-color: #1a73e8; color: #fff; }
+.edit-btn { background-color: #f9a825; color: #fff; }
+.delete-btn { background-color: #e53935; color: #fff; }
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+.modal-content { background-color: var(--card-bg); padding: 30px; border-radius: 12px; max-width: 800px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; }
+.modal-close-btn { position: absolute; top: 15px; right: 25px; font-size: 2rem; font-weight: bold; color: #888; cursor: pointer; }
+.invoice-view h2 { text-align: center; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; color: var(--primary-color); }
+.invoice-view .print-btn { display: block; width: 100%; margin-top: 20px; background-color: var(--primary-color); color: #fff; padding: 12px; border-radius: 8px; cursor: pointer; }
 </style>
 </head>
 <body>
 <div class="container">
-
-    <!-- شاشة تسجيل الدخول -->
-    <div class="card" id="loginSection">
-        <h2>تسجيل الدخول</h2>
-        <input type="text" id="username" placeholder="اسم المستخدم" />
-        <input type="password" id="password" placeholder="كلمة المرور" />
-        <button onclick="localLogin()">دخول</button>
+    <div class="header"><h1>نظام فواتير شركة عمار العزات وأولاده</h1></div>
+    <div class="card">
+        <form id="invoiceForm">
+            <div class="form-grid">
+                <div class="form-group"><label>رقم الفاتورة</label><input type="text" id="invoiceNo" required /></div>
+                <div class="form-group"><label>التاريخ</label><input type="date" id="date" required /></div>
+                <div class="form-group"><label>اسم العميل</label><input type="text" id="name" required /></div>
+                <div class="form-group"><label>المنطقة</label><input type="text" id="region" required /></div>
+                <div class="form-group"><label>العدد</label><input type="number" id="count" oninput="calculateTotal()" /></div>
+                <div class="form-group"><label>الوزن</label><input type="number" id="weight" oninput="calculateTotal()" /></div>
+                <div class="form-group"><label>النوع</label><input type="text" id="type" /></div>
+                <div class="form-group"><label>السعر</label><input type="number" id="price" oninput="calculateTotal()" /></div>
+                <div class="form-group"><label>الإجمالي</label><input type="number" id="total" readonly /></div>
+                <div class="form-group"><label>المدفوع</label><input type="number" id="paid" oninput="updateRemaining()" /></div>
+                <div class="form-group"><label>المتبقي</label><input type="number" id="remaining" readonly /></div>
+                <div class="form-group full-width"><label>ملاحظات</label><input type="text" id="note" /></div>
+            </div>
+            <div class="button-container"><button type="button" id="addBtn" onclick="addInvoice()">إضافة فاتورة</button></div>
+        </form>
     </div>
-
-    <!-- محتوى التطبيق -->
-    <div id="appContent" class="hidden">
-        <button class="logout-btn" onclick="logout()">تسجيل الخروج</button>
-        <h2>نظام الفواتير</h2>
-
-        <!-- نموذج إضافة فاتورة -->
-        <div class="card">
-            <form id="invoiceForm">
-                <input type="text" id="invoiceNo" placeholder="رقم الفاتورة" required />
-                <input type="date" id="date" required />
-                <input type="text" id="name" placeholder="اسم العميل" required />
-                <input type="text" id="region" placeholder="المنطقة" required />
-                <input type="number" id="count" placeholder="العدد" oninput="calculateTotal()" />
-                <input type="number" id="weight" placeholder="الوزن" oninput="calculateTotal()" />
-                <input type="text" id="type" placeholder="النوع" />
-                <input type="number" id="price" placeholder="السعر" oninput="calculateTotal()" />
-                <input type="number" id="total" placeholder="الإجمالي" readonly />
-                <input type="number" id="paid" placeholder="المدفوع" oninput="updateRemaining()" />
-                <input type="number" id="remaining" placeholder="المتبقي" readonly />
-                <input type="text" id="note" placeholder="ملاحظات" />
-                <button type="button" onclick="addInvoice()">إضافة فاتورة</button>
-            </form>
-        </div>
-
-        <!-- جدول الفواتير -->
-        <div class="card">
+    <div class="card">
+        <div class="search-container"><input type="text" id="search" placeholder="بحث..." oninput="searchInvoice()" /></div>
+    </div>
+    <div class="card">
+        <div class="table-container">
             <table id="invoiceTable">
                 <thead>
                     <tr>
-                        <th>رقم الفاتورة</th><th>التاريخ</th><th>الاسم</th><th>المنطقة</th>
-                        <th>العدد</th><th>الوزن</th><th>النوع</th><th>السعر</th>
-                        <th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th>ملاحظات</th><th>حذف</th>
+                        <th>رقم الفاتورة</th><th>التاريخ</th><th>العميل</th><th>المنطقة</th><th>العدد</th><th>الوزن</th>
+                        <th>النوع</th><th>السعر</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th><th>ملاحظات</th><th>إجراءات</th>
                     </tr>
                 </thead>
                 <tbody></tbody>
             </table>
         </div>
+        <div style="text-align:left;margin-top:20px;">
+            <button id="exportBtn" onclick="exportToExcel()">تصدير إلى Excel</button>
+        </div>
     </div>
 </div>
 
+<div id="invoiceModal" class="modal" onclick="closeModal(event)">
+    <div class="modal-content">
+        <span class="modal-close-btn" onclick="closeModal(event)">&times;</span>
+        <div id="invoiceViewContent"></div>
+    </div>
+</div>
+
+<!-- Firebase Scripts -->
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore.js"></script>
+
 <script>
-/* ===== إعداد Firebase ===== */
+// إعداد Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyAyJUFnNx0GA_kr1K4RJv0QjXrSj6hPEzw",
     authDomain: "bill-52bc1.firebaseapp.com",
@@ -84,110 +119,76 @@ const firebaseConfig = {
     appId: "1:674828701661:web:43027ab784b7510a227034"
 };
 firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 const db = firebase.firestore();
 
-/* ===== نظام تسجيل الدخول المحلي ===== */
-const validUsers = [
-    { username: "admin", password: "12345", token: "admin-token" }
-];
+// الدخول التلقائي
+auth.signInAnonymously().then(() => {
+    console.log("تم تسجيل الدخول تلقائياً");
+    loadInvoices();
+});
 
-function localLogin() {
-    const u = document.getElementById("username").value.trim();
-    const p = document.getElementById("password").value.trim();
-    const user = validUsers.find(x => x.username === u && x.password === p);
-
-    if (user) {
-        localStorage.setItem("authToken", user.token);
-        document.getElementById("loginSection").classList.add("hidden");
-        document.getElementById("appContent").classList.remove("hidden");
-        fetchInvoices();
-    } else {
-        alert("اسم المستخدم أو كلمة المرور غير صحيحة");
-    }
-}
-
-function logout() {
-    localStorage.removeItem("authToken");
-    document.getElementById("loginSection").classList.remove("hidden");
-    document.getElementById("appContent").classList.add("hidden");
-}
-
-window.onload = () => {
-    if (localStorage.getItem("authToken")) {
-        document.getElementById("loginSection").classList.add("hidden");
-        document.getElementById("appContent").classList.remove("hidden");
-        fetchInvoices();
-    }
-};
-
-/* ===== إدارة الفواتير ===== */
+// تحميل الفواتير من Firestore
 let invoices = [];
+let editIndex = null;
+let visibleInvoicesIndices = [];
 
-async function fetchInvoices() {
-    const snapshot = await db.collection("invoices").get();
-    invoices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    renderTable();
-}
-
-function calculateTotal() {
-    const count = parseFloat(document.getElementById("count").value) || 0;
-    const weight = parseFloat(document.getElementById("weight").value) || 0;
-    const price = parseFloat(document.getElementById("price").value) || 0;
-    document.getElementById("total").value = (count > 0 ? count * price : weight * price);
-    updateRemaining();
-}
-
-function updateRemaining() {
-    const total = parseFloat(document.getElementById("total").value) || 0;
-    const paid = parseFloat(document.getElementById("paid").value) || 0;
-    document.getElementById("remaining").value = total - paid;
-}
-
-async function addInvoice() {
-    const inv = {
-        invoiceNo: document.getElementById("invoiceNo").value,
-        date: document.getElementById("date").value,
-        name: document.getElementById("name").value.trim(),
-        region: document.getElementById("region").value.trim(),
-        count: document.getElementById("count").value,
-        weight: document.getElementById("weight").value,
-        type: document.getElementById("type").value,
-        price: document.getElementById("price").value,
-        total: document.getElementById("total").value,
-        paid: document.getElementById("paid").value,
-        remaining: document.getElementById("remaining").value,
-        note: document.getElementById("note").value.trim()
-    };
-
-    if (!inv.invoiceNo || !inv.date || !inv.name) {
-        alert("يرجى إدخال البيانات المطلوبة");
-        return;
-    }
-
-    await db.collection("invoices").add(inv);
-    fetchInvoices();
-}
-
-function renderTable() {
-    const tbody = document.querySelector("#invoiceTable tbody");
-    tbody.innerHTML = "";
-    invoices.forEach(inv => {
-        tbody.innerHTML += `
-            <tr>
-                <td>${inv.invoiceNo}</td><td>${inv.date}</td><td>${inv.name}</td><td>${inv.region}</td>
-                <td>${inv.count}</td><td>${inv.weight}</td><td>${inv.type}</td><td>${inv.price}</td>
-                <td>${inv.total}</td><td>${inv.paid}</td><td>${inv.remaining}</td><td>${inv.note}</td>
-                <td><button onclick="deleteInvoice('${inv.id}')">حذف</button></td>
-            </tr>`;
+function loadInvoices() {
+    db.collection("invoices").get().then(snapshot => {
+        invoices = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        renderTable();
     });
 }
 
-async function deleteInvoice(id) {
-    if (confirm("هل أنت متأكد من الحذف؟")) {
-        await db.collection("invoices").doc(id).delete();
-        fetchInvoices();
-    }
+function saveInvoiceToFirebase(inv) {
+    db.collection("invoices").add(inv).then(() => {
+        loadInvoices();
+    });
 }
+
+// دوال الحسابات والرسم
+function setTodayDate(){ document.getElementById("date").value=new Date().toISOString().split("T")[0]; }
+function calculateTotal(){ const c=+count.value||0; const w=+weight.value||0; const p=+price.value||0; total.value=(c>0?c*p:(w>0?w*p:0)); updateRemaining(); }
+function updateRemaining(){ remaining.value=(+total.value||0)-(+paid.value||0); }
+
+function renderTable() {
+    const tbody=document.querySelector("#invoiceTable tbody");
+    tbody.innerHTML="";
+    let rows=visibleInvoicesIndices.length?visibleInvoicesIndices:invoices.map((_,i)=>i);
+    rows.forEach(i=>{
+        const inv=invoices[i];
+        tbody.innerHTML+=`<tr>
+            <td>${inv.invoiceNo}</td><td>${inv.date}</td><td>${inv.name}</td><td>${inv.region}</td>
+            <td>${inv.count}</td><td>${inv.weight}</td><td>${inv.type}</td><td>${inv.price}</td>
+            <td>${inv.total}</td><td>${inv.paid}</td><td>${inv.remaining}</td><td>${inv.note}</td>
+            <td class="action-buttons">
+                <button class="view-btn" onclick="showInvoice(${i})">عرض</button>
+                <button class="edit-btn" onclick="editInvoice(${i})">تعديل</button>
+                <button class="delete-btn" onclick="deleteInvoice(${i})">حذف</button>
+            </td></tr>`;
+    });
+}
+
+function addInvoice(){
+    const inv={ invoiceNo:invoiceNo.value, date:date.value, name:name.value, region:region.value, count:count.value, weight:weight.value, type:type.value, price:price.value, total:total.value, paid:paid.value, remaining:remaining.value, note:note.value };
+    if(!inv.invoiceNo||!inv.date||!inv.name){ alert("أدخل الحقول المطلوبة"); return; }
+    saveInvoiceToFirebase(inv);
+    clearForm();
+}
+
+function clearForm(){ document.querySelectorAll("#invoiceForm input").forEach(i=>i.value=""); setTodayDate(); }
+
+function editInvoice(i){ const inv=invoices[i]; invoiceNo.value=inv.invoiceNo; date.value=inv.date; name.value=inv.name; region.value=inv.region; count.value=inv.count; weight.value=inv.weight; type.value=inv.type; price.value=inv.price; total.value=inv.total; paid.value=inv.paid; remaining.value=inv.remaining; note.value=inv.note; editIndex=i; }
+
+function deleteInvoice(i){ if(confirm("حذف الفاتورة؟")){ db.collection("invoices").doc(invoices[i].id).delete().then(loadInvoices); } }
+
+function searchInvoice(){ const term=search.value.toLowerCase().trim(); visibleInvoicesIndices=invoices.map((inv,i)=>({inv,i})).filter(x=>x.inv.invoiceNo.toLowerCase().includes(term)||x.inv.name.toLowerCase().includes(term)||x.inv.region.toLowerCase().includes(term)||(x.inv.note||"").toLowerCase().includes(term)).map(x=>x.i); renderTable(); }
+
+function exportToExcel(){ let csv="رقم الفاتورة,التاريخ,الاسم,المنطقة,العدد,الوزن,النوع,السعر,الإجمالي,المدفوع,المتبقي,ملاحظات\n"; invoices.forEach(inv=>{ csv+=`${inv.invoiceNo},${inv.date},${inv.name},${inv.region},${inv.count},${inv.weight},${inv.type},${inv.price},${inv.total},${inv.paid},${inv.remaining},${inv.note}\n`; }); const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}); const link=document.createElement("a"); link.href=URL.createObjectURL(blob); link.download="فواتير.csv"; link.click(); }
+
+function showInvoice(i){ const inv=invoices[i]; invoiceViewContent.innerHTML=`<div class='invoice-view'><h2>فاتورة رقم ${inv.invoiceNo}</h2><table><tr><th>التاريخ</th><td>${inv.date}</td></tr><tr><th>العميل</th><td>${inv.name}</td></tr><tr><th>المنطقة</th><td>${inv.region}</td></tr><tr><th>العدد</th><td>${inv.count}</td></tr><tr><th>الوزن</th><td>${inv.weight}</td></tr><tr><th>النوع</th><td>${inv.type}</td></tr><tr><th>السعر</th><td>${inv.price}</td></tr><tr><th>الإجمالي</th><td>${inv.total}</td></tr><tr><th>المدفوع</th><td>${inv.paid}</td></tr><tr><th>المتبقي</th><td>${inv.remaining}</td></tr><tr><th>ملاحظات</th><td>${inv.note}</td></tr></table><button class='print-btn' onclick='window.print()'>طباعة</button></div>`; invoiceModal.style.display='flex'; }
+function closeModal(e){ if(e.target.id==="invoiceModal"||e.target.className==="modal-close-btn"){ invoiceModal.style.display="none"; }}
+window.onload=()=>{ setTodayDate(); };
 </script>
 </body>
 </html>
